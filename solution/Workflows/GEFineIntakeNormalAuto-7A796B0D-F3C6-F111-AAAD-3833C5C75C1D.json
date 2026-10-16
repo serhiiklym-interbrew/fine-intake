@@ -1,0 +1,768 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline_2": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedsharepointonline_d8fb4"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_commondataserviceforapps_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedcommondataserviceforapps_293ed"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      },
+      "shared_commondataserviceforapps_2": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedcommondataserviceforapps_2be60"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      },
+      "shared_sharepointonline_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedsharepointonline_b37ee"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_excelonlinebusiness_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedexcelonlinebusiness_9ce6e"
+        },
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "When_a_file_is_created_(properties_only)": {
+          "recurrence": {
+            "interval": 1,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "operationMetadataId": "56543bad-25a0-47a6-aaef-9c2abbcfa18e"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline_1",
+              "operationId": "GetOnNewFileItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "https://anheuserbuschinbev.sharepoint.com/sites/FleetEurope",
+              "table": "3c3a8887-944f-4378-b653-1c83c7e9febe",
+              "folderPath": "/Shared Documents/FLEET GERMANY/Fines/Fines_Payroll-Input/0. Testing AI"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "conditions": [
+            {
+              "expression": "@equals(triggerOutputs()?['body/{IsFolder}'], false)"
+            }
+          ]
+        }
+      },
+      "actions": {
+        "Scope_Try": {
+          "actions": {
+            "Get_file_content": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "9d24f518-59da-46f9-8b50-30f72a02cb4b"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_sharepointonline_2",
+                  "operationId": "GetFileContent",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                },
+                "parameters": {
+                  "dataset": "https://anheuserbuschinbev.sharepoint.com/sites/FleetEurope",
+                  "id": "@triggerOutputs()?['body/{Identifier}']",
+                  "inferContentType": true
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Recognize_text_in_image_or_document": {
+              "runAfter": {
+                "Get_file_content": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "7037d60e-1f09-4bdc-be9b-b37336f4c904",
+                "flowSystemMetadata": {
+                  "portalOperationId": "aibuilderpredict_textrecognition",
+                  "portalOperationGroup": "aibuilder",
+                  "portalOperationApiDisplayNameOverride": "AI Builder",
+                  "portalOperationIconOverride": "https://content.powerapps.com/resource/makerx/static/pauto/images/designeroperations/aibuilderIcon2026.8e878397.png",
+                  "portalOperationBrandColorOverride": "#0A76C4",
+                  "portalOperationApiTierOverride": "Standard"
+                }
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps_1",
+                  "operationId": "aibuilderpredict_textrecognition",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "item/requestv2/base64Encoded": "@body('Get_file_content')"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Compose_OcrText": {
+              "runAfter": {
+                "Select_PageTexts": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "21580678-1236-45f5-8091-f9f5d98baca3"
+              },
+              "type": "Compose",
+              "inputs": "@join(body('Select_PageTexts'), decodeUriComponent('%0A'))"
+            },
+            "Select_PageTexts": {
+              "runAfter": {
+                "Recognize_text_in_image_or_document": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "264528f5-f02b-4121-abcc-7035fcabdcaa"
+              },
+              "type": "Select",
+              "inputs": {
+                "from": "@outputs('Recognize_text_in_image_or_document')?['body/responsev2/predictionOutput/results']",
+                "select": "@item()?['fullPageText']"
+              }
+            },
+            "Run_a_prompt": {
+              "runAfter": {
+                "Compose_OcrText": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "00cc28c0-510d-43d1-ad21-b6b37a3a908d",
+                "flowSystemMetadata": {
+                  "portalOperationId": "aibuilderpredict_customprompt",
+                  "portalOperationGroup": "aibuilder",
+                  "portalOperationApiDisplayNameOverride": "AI Builder",
+                  "portalOperationIconOverride": "https://content.powerapps.com/resource/makerx/static/pauto/images/designeroperations/aibuilderIcon2026.8e878397.png",
+                  "portalOperationBrandColorOverride": "#0A76C4",
+                  "portalOperationApiTierOverride": "Standard"
+                }
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps_2",
+                  "operationId": "aibuilderpredict_customprompt",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "recordId": "48ae0faa-5acc-413c-9098-ea368921bef1",
+                  "item/requestv2/OcrText": "@outputs('Compose_OcrText')",
+                  "item/source": {
+                    "consumptionSource": "PowerAutomate",
+                    "partnerSource": "AIBuilder",
+                    "consumptionSourceVersion": "Flow",
+                    "partnerSourceVersion": "d049774b-f9df-416e-5d68-be8420592f6c"
+                  }
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Parse_FineData": {
+              "runAfter": {
+                "Run_a_prompt": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "e7d90fa7-ad1d-4f33-8add-e97bf2438228"
+              },
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@outputs('Run_a_prompt')?['body/responsev2/predictionOutput/text']",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "VendorName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "PlateNumber": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "Aktenzeichen": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "OffenceDate": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "LetterDate": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "Amount": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "AuthorityEmail": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "Condition_HasPlate": {
+              "actions": {
+                "Condition_AllCore": {
+                  "actions": {
+                    "Set_variable_varStatus_Passed": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "c37ec603-6871-46b9-9e65-93d7d30d0996"
+                      },
+                      "type": "SetVariable",
+                      "inputs": {
+                        "name": "varStatus",
+                        "value": "Passed"
+                      }
+                    }
+                  },
+                  "runAfter": {},
+                  "else": {
+                    "actions": {
+                      "Set_variable_varStatus_Check": {
+                        "runAfter": {},
+                        "metadata": {
+                          "operationMetadataId": "7a08b76e-4e26-4d88-a335-ee6810ab2251"
+                        },
+                        "type": "SetVariable",
+                        "inputs": {
+                          "name": "varStatus",
+                          "value": "Check"
+                        }
+                      }
+                    }
+                  },
+                  "expression": {
+                    "equals": [
+                      "@and(not(empty(body('Parse_FineData')?['Aktenzeichen'])), not(empty(body('Parse_FineData')?['OffenceDate'])), not(empty(string(body('Parse_FineData')?['Amount']))))",
+                      true
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "3658516a-b4e0-4e97-b0af-a2cd97bca784"
+                  },
+                  "type": "If"
+                }
+              },
+              "runAfter": {
+                "Parse_FineData": [
+                  "Succeeded"
+                ]
+              },
+              "else": {
+                "actions": {
+                  "Set_variable_varStatus_Failed": {
+                    "runAfter": {},
+                    "metadata": {
+                      "operationMetadataId": "b67a993c-9e4d-4555-8bd5-b6557f268308"
+                    },
+                    "type": "SetVariable",
+                    "inputs": {
+                      "name": "varStatus",
+                      "value": "Failed"
+                    }
+                  }
+                }
+              },
+              "expression": {
+                "equals": [
+                  "@empty(body('Parse_FineData')?['PlateNumber'])",
+                  false
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "6aeaf82e-00fd-4c6d-a576-654bde5eed31"
+              },
+              "type": "If"
+            },
+            "Condition_ShouldWrite": {
+              "actions": {
+                "Create_new_folder": {
+                  "runAfter": {
+                    "Compose_FolderFull": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "724788fe-62c9-4618-a604-cb5e3cb7adaf"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_sharepointonline_1",
+                      "operationId": "CreateNewFolder",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                    },
+                    "parameters": {
+                      "dataset": "https://anheuserbuschinbev.sharepoint.com/sites/FleetEurope",
+                      "table": "3c3a8887-944f-4378-b653-1c83c7e9febe",
+                      "parameters/path": "@outputs('Compose_FolderRelative')"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Run_script_into_Fines_Data": {
+                  "runAfter": {
+                    "Get_file_properties": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "01OW33XMJQA7LUSF62TREJCJMIBVHNB7ON": "/FLEET GERMANY/Fines/Fines_Payroll-Input/Fines Output/Fines_Data.xlsx",
+                    "operationMetadataId": "500100cc-c29a-4f25-9142-da421f119233",
+                    "tableId": null
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_excelonlinebusiness_1",
+                      "operationId": "RunScriptProd",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                    },
+                    "parameters": {
+                      "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
+                      "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
+                      "file": "01OW33XMJQA7LUSF62TREJCJMIBVHNB7ON",
+                      "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YI73F4RIQKJ6VHIRT5ZFH6JBJ4O",
+                      "ScriptParameters/fileName": "@triggerOutputs()?['body/{FilenameWithExtension}']",
+                      "ScriptParameters/fineType": "Normal",
+                      "ScriptParameters/status": "@variables('varStatus')",
+                      "ScriptParameters/fileLink": "@outputs('Get_file_properties')?['body/{Link}']",
+                      "ScriptParameters/folderPath": "@outputs('Create_new_folder')?['body/{Link}']",
+                      "ScriptParameters/dataJson": "@string(body('Parse_FineData'))"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Move_file_to_Processed": {
+                  "runAfter": {
+                    "Create_new_folder": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "e298411c-366f-4e43-ad05-6248e8dd4edf"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_sharepointonline_1",
+                      "operationId": "MoveFileAsync",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                    },
+                    "parameters": {
+                      "dataset": "https://anheuserbuschinbev.sharepoint.com/sites/FleetEurope",
+                      "parameters/sourceFileId": "@triggerOutputs()?['body/{Identifier}']",
+                      "parameters/destinationDataset": "https://anheuserbuschinbev.sharepoint.com/sites/FleetEurope",
+                      "parameters/destinationFolderPath": "@outputs('Compose_FolderFull')",
+                      "parameters/nameConflictBehavior": 1
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Get_file_properties": {
+                  "runAfter": {
+                    "Move_file_to_Processed": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "2754272c-8436-4ed3-9cdd-b10cd6882ee2"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_sharepointonline_1",
+                      "operationId": "GetFileItem",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                    },
+                    "parameters": {
+                      "dataset": "https://anheuserbuschinbev.sharepoint.com/sites/FleetEurope",
+                      "table": "3c3a8887-944f-4378-b653-1c83c7e9febe",
+                      "id": "@outputs('Move_file_to_Processed')?['body/ItemId']"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Compose_FolderRelative": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "cc639e39-10f2-4d45-a1aa-73c930a324c9"
+                  },
+                  "type": "Compose",
+                  "inputs": "@concat('/FLEET GERMANY/Fines/Fines_Payroll-Input/0. Testing AI/Processed/', utcNow('yyyy'))"
+                },
+                "Compose_FolderFull": {
+                  "runAfter": {
+                    "Compose_FolderRelative": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "2c13b491-4371-4c44-bb32-515f6f4090a4"
+                  },
+                  "type": "Compose",
+                  "inputs": "@concat('/Shared Documents/FLEET GERMANY/Fines/Fines_Payroll-Input/0. Testing AI/Processed/', utcNow('yyyy'))"
+                },
+                "Condition_Inserted": {
+                  "actions": {
+                    "Compose_LogEntry_Success": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "608d13f2-ce9b-4308-b521-d52a10e9f65b"
+                      },
+                      "type": "Compose",
+                      "inputs": "@json(concat('[[\"', variables('varCorrelationId'), '\",\"', triggerOutputs()?['body/{FilenameWithExtension}'], '\",\"Normal\",\"', variables('varStartTime'), '\",\"', variables('varStartTime'), '\",\"', utcNow(), '\",', div(sub(ticks(utcNow()), ticks(variables('varStartTime'))), 10000000), ',\"Success\",1,\"\",\"', workflow()?['run']?['name'], '\"]]'))"
+                    },
+                    "Run_script_Log_Success": {
+                      "runAfter": {
+                        "Compose_LogEntry_Success": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "01OW33XMMMAVAWH535IFA3CEK2FFOOYUB7": "/FLEET GERMANY/Fines/Fines_Payroll-Input/Fines Output/Fines_Log.xlsx",
+                        "operationMetadataId": "4bed1d80-3e9f-48f7-a364-cb21d0ca101e",
+                        "tableId": null
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connectionName": "shared_excelonlinebusiness_1",
+                          "operationId": "RunScriptProd",
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                        },
+                        "parameters": {
+                          "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
+                          "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
+                          "file": "01OW33XMMMAVAWH535IFA3CEK2FFOOYUB7",
+                          "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YNXHHJ75CT3JJF2MRGBTYSA4BAI",
+                          "ScriptParameters/tableName": "tblFinesLog",
+                          "ScriptParameters/rowsJson": "@string(outputs('Compose_LogEntry_Success'))"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "Run_script_into_Fines_Data": [
+                      "Succeeded"
+                    ]
+                  },
+                  "else": {
+                    "actions": {
+                      "Compose_LogEntry_Skipped": {
+                        "runAfter": {},
+                        "metadata": {
+                          "operationMetadataId": "5bddea0b-0b75-43d7-929f-f7503f66e287"
+                        },
+                        "type": "Compose",
+                        "inputs": "@json(concat('[[\"', variables('varCorrelationId'), '\",\"', triggerOutputs()?['body/{FilenameWithExtension}'], '\",\"Normal\",\"', variables('varStartTime'), '\",\"', variables('varStartTime'), '\",\"', utcNow(), '\",', div(sub(ticks(utcNow()), ticks(variables('varStartTime'))), 10000000), ',\"Skipped\",0,\"Duplicate reference number\",\"', workflow()?['run']?['name'], '\"]]'))"
+                      },
+                      "Run_script_Log_Skipped": {
+                        "runAfter": {
+                          "Compose_LogEntry_Skipped": [
+                            "Succeeded"
+                          ]
+                        },
+                        "metadata": {
+                          "01OW33XMMMAVAWH535IFA3CEK2FFOOYUB7": "/FLEET GERMANY/Fines/Fines_Payroll-Input/Fines Output/Fines_Log.xlsx",
+                          "operationMetadataId": "250d2e28-a922-4781-a817-2d66b275a85c",
+                          "tableId": null
+                        },
+                        "type": "OpenApiConnection",
+                        "inputs": {
+                          "host": {
+                            "connectionName": "shared_excelonlinebusiness_1",
+                            "operationId": "RunScriptProd",
+                            "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                          },
+                          "parameters": {
+                            "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
+                            "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
+                            "file": "01OW33XMMMAVAWH535IFA3CEK2FFOOYUB7",
+                            "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YNXHHJ75CT3JJF2MRGBTYSA4BAI",
+                            "ScriptParameters/tableName": "tblFinesLog",
+                            "ScriptParameters/rowsJson": "@string(outputs('Compose_LogEntry_Skipped'))"
+                          },
+                          "authentication": "@parameters('$authentication')"
+                        }
+                      }
+                    }
+                  },
+                  "expression": {
+                    "equals": [
+                      "@body('Run_script_into_Fines_Data')?['result']?['inserted']",
+                      true
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "2f8d6b5c-027d-49c0-b925-0af78e33a35e"
+                  },
+                  "type": "If"
+                }
+              },
+              "runAfter": {
+                "Condition_HasPlate": [
+                  "Succeeded"
+                ]
+              },
+              "else": {
+                "actions": {
+                  "Compose_FailHard": {
+                    "runAfter": {},
+                    "metadata": {
+                      "operationMetadataId": "ecfc2bae-d1c2-4b02-81b8-d981f41757db"
+                    },
+                    "type": "Compose",
+                    "inputs": "@div(1, 0)"
+                  }
+                }
+              },
+              "expression": {
+                "not": {
+                  "equals": [
+                    "@variables('varStatus')",
+                    "Failed"
+                  ]
+                }
+              },
+              "metadata": {
+                "operationMetadataId": "59cb3c7c-0bbc-4343-b9b7-d74afd57a64e"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "Initialize_varStartTime": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8d7c4495-8e6a-449e-97a9-dfc8b6204560"
+          },
+          "type": "Scope"
+        },
+        "Initialize_varStatus": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "5ea8f288-ceb9-4e14-be3b-b3492108aff3"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varStatus",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_varStartTime": {
+          "runAfter": {
+            "Initialize_varCorrelationId": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "123aaa06-e657-42c8-963c-77b5d2d72501"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varStartTime",
+                "type": "string",
+                "value": "@{utcNow()}"
+              }
+            ]
+          }
+        },
+        "Initialize_varCorrelationId": {
+          "runAfter": {
+            "Initialize_varStatus": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "032ab7c4-13d8-483e-ac2d-32bbbe0b8fc5"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varCorrelationId",
+                "type": "string",
+                "value": "@{guid()}"
+              }
+            ]
+          }
+        },
+        "Scope_Catch": {
+          "actions": {
+            "Move_file_to_Failed": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "807fe458-94da-4400-89e0-e386cef51fec"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_sharepointonline_1",
+                  "operationId": "MoveFileAsync",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                },
+                "parameters": {
+                  "dataset": "https://anheuserbuschinbev.sharepoint.com/sites/FleetEurope",
+                  "parameters/sourceFileId": "@triggerOutputs()?['body/{Identifier}']",
+                  "parameters/destinationDataset": "https://anheuserbuschinbev.sharepoint.com/sites/FleetEurope",
+                  "parameters/destinationFolderPath": "/Shared Documents/FLEET GERMANY/Fines/Fines_Payroll-Input/0. Testing AI/Failed",
+                  "parameters/nameConflictBehavior": 1
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Run_script_Log_Failed": {
+              "runAfter": {
+                "Compose_LogEntry_Failure": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "01OW33XMMMAVAWH535IFA3CEK2FFOOYUB7": "/FLEET GERMANY/Fines/Fines_Payroll-Input/Fines Output/Fines_Log.xlsx",
+                "operationMetadataId": "cf36234c-c8a9-499f-8058-4067d8d733d1",
+                "tableId": null
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_excelonlinebusiness_1",
+                  "operationId": "RunScriptProd",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                },
+                "parameters": {
+                  "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
+                  "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
+                  "file": "01OW33XMMMAVAWH535IFA3CEK2FFOOYUB7",
+                  "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YNXHHJ75CT3JJF2MRGBTYSA4BAI",
+                  "ScriptParameters/tableName": "tblFinesLog",
+                  "ScriptParameters/rowsJson": "@string(outputs('Compose_LogEntry_Failure'))"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Compose_LogEntry_Failure": {
+              "runAfter": {
+                "Filter_FailedActions": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "46aceb38-6021-43f1-9f21-bbabd918ec0c"
+              },
+              "type": "Compose",
+              "inputs": "@json(concat('[[\"', variables('varCorrelationId'), '\",\"', triggerOutputs()?['body/{FilenameWithExtension}'], '\",\"Normal\",\"', variables('varStartTime'), '\",\"', variables('varStartTime'), '\",\"', utcNow(), '\",', div(sub(ticks(utcNow()), ticks(variables('varStartTime'))), 10000000), ',\"Failure\",0,\"', replace(replace(coalesce(first(body('Filter_FailedActions'))?['error']?['message'], 'Flow failed'), '\"', ''), decodeUriComponent('%0A'), ' '), '\",\"', workflow()?['run']?['name'], '\"]]'))"
+            },
+            "Filter_FailedActions": {
+              "runAfter": {
+                "Move_file_to_Failed": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "d4eb74cd-bd2d-4f3a-b9ba-0668cdaf94cf"
+              },
+              "type": "Query",
+              "inputs": {
+                "from": "@result('Scope_Try')",
+                "where": "@equals(item()?['status'], 'Failed')"
+              }
+            }
+          },
+          "runAfter": {
+            "Scope_Try": [
+              "Failed",
+              "Skipped",
+              "TimedOut"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "353b4d8e-a874-4b6e-98d2-cdf3ab2a378e"
+          },
+          "type": "Scope"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

@@ -1,0 +1,2 @@
+﻿# Power Platform solution export artifacts (source of truth is the unpacked solution/)
+exports/*.zip
