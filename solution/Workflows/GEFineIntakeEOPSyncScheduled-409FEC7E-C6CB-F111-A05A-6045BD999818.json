@@ -1,0 +1,494 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedsharepointonline_b37ee"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_excelonlinebusiness_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedexcelonlinebusiness_9ce6e"
+        },
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      },
+      "shared_excelonlinebusiness": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedexcelonlinebusiness_fd10e"
+        },
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      },
+      "shared_teams": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedteams_0404f"
+        },
+        "api": {
+          "name": "shared_teams"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Day",
+            "interval": 1,
+            "timeZone": "W. Europe Standard Time",
+            "startTime": "2026-10-19T03:00:00Z",
+            "schedule": {
+              "hours": [
+                "5"
+              ],
+              "minutes": [
+                0
+              ]
+            }
+          },
+          "evaluatedRecurrence": {
+            "frequency": "Day",
+            "interval": 1,
+            "timeZone": "W. Europe Standard Time",
+            "startTime": "2026-10-19T03:00:00Z",
+            "schedule": {
+              "hours": [
+                "5"
+              ],
+              "minutes": [
+                0
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "303c3197-67c6-4072-bb6a-41403fbd2de8"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Initialize_varCorrelationId": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "bac8cde9-32e0-4c69-ab33-1324ace91eba"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varCorrelationId",
+                "type": "string",
+                "value": "@{guid()}"
+              }
+            ]
+          }
+        },
+        "Initialize_varStartTime": {
+          "runAfter": {
+            "Initialize_varCorrelationId": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d474052d-a3f6-4e4e-8905-02d6ec5225c8"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varStartTime",
+                "type": "string",
+                "value": "@{utcNow()}"
+              }
+            ]
+          }
+        },
+        "Get_file_metadata_EopSource": {
+          "runAfter": {
+            "Initialize_varStartTime": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "%252fShared%2bDocuments%252fFLEET%2bGERMANY%252fFleet%2bMasterdata%2b%2526%2bReports%252fEOP_Ge.xlsx": "/Shared Documents/FLEET GERMANY/Fleet Masterdata & Reports/EOP_Ge.xlsx",
+            "operationMetadataId": "dd458fd1-bcb0-494f-8955-cfbd8c40aed5",
+            "%252fShared%2bDocuments%252f00.%2bData%2bSources%252fTest%252fHeadcount_Report.xlsx": "/Shared Documents/00. Data Sources/Test/Headcount_Report.xlsx"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline_1",
+              "operationId": "GetFileMetadata",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "https://anheuserbuschinbev.sharepoint.com/sites/EUR-People-EEX-AutomationHub",
+              "id": "%252fShared%2bDocuments%252f00.%2bData%2bSources%252fTest%252fHeadcount_Report.xlsx"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Condition_EopSource_Size_OK": {
+          "actions": {
+            "Scope_Try": {
+              "actions": {
+                "List_rows_Headcount": {
+                  "runAfter": {},
+                  "metadata": {
+                    "01OW33XMIZU2ND7NOCSREKGDKN3EICD5RP": "/FLEET GERMANY/Fleet Masterdata & Reports/EOP_Ge.xlsx",
+                    "operationMetadataId": "0019a169-6469-46ef-b982-25c67e34a021",
+                    "tableId": "{70F8F975-4C14-4251-98A2-F9B025188E75}",
+                    "01IJ4KAQG3R54OMSNAWNFLDBVQO7ZLARPI": "/00. Data Sources/Test/Headcount_Report.xlsx"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_excelonlinebusiness_1",
+                      "operationId": "GetItems",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                    },
+                    "parameters": {
+                      "source": "groups/ccb4f658-fdae-4cf4-8796-34b9845bf23f",
+                      "drive": "b!ZqZzDOCndkqoUH2zmW1U4a6FHmOXkI9MhC1fE7e6fmqMTayBF68kRqlXhu4lhVgR",
+                      "file": "01IJ4KAQG3R54OMSNAWNFLDBVQO7ZLARPI",
+                      "table": "{70F8F975-4C14-4251-98A2-F9B025188E75}"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  },
+                  "runtimeConfiguration": {
+                    "paginationPolicy": {
+                      "minimumItemCount": 20000
+                    }
+                  }
+                },
+                "List_rows_Address": {
+                  "runAfter": {
+                    "List_rows_Headcount": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "01OW33XMIZU2ND7NOCSREKGDKN3EICD5RP": "/FLEET GERMANY/Fleet Masterdata & Reports/EOP_Ge.xlsx",
+                    "operationMetadataId": "90a2e860-ebca-4c93-9280-dc03002e5e7f",
+                    "tableId": "{C67BB51C-3DDA-485C-A814-C4069A2B44B1}",
+                    "01IJ4KAQG3R54OMSNAWNFLDBVQO7ZLARPI": "/00. Data Sources/Test/Headcount_Report.xlsx"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_excelonlinebusiness",
+                      "operationId": "GetItems",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                    },
+                    "parameters": {
+                      "source": "groups/ccb4f658-fdae-4cf4-8796-34b9845bf23f",
+                      "drive": "b!ZqZzDOCndkqoUH2zmW1U4a6FHmOXkI9MhC1fE7e6fmqMTayBF68kRqlXhu4lhVgR",
+                      "file": "01IJ4KAQG3R54OMSNAWNFLDBVQO7ZLARPI",
+                      "table": "{C67BB51C-3DDA-485C-A814-C4069A2B44B1}"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  },
+                  "runtimeConfiguration": {
+                    "paginationPolicy": {
+                      "minimumItemCount": 20000
+                    }
+                  }
+                },
+                "Run_script_Build_EOP_DATA": {
+                  "runAfter": {
+                    "List_rows_Address": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "01OW33XMIBRHETP5OBBZDL4CEYZIPAVDN6": "/FLEET GERMANY/Fines/Fines_Payroll-Input/DUMP_AUTOMATION_FILE/EOP_DATA.xlsx",
+                    "operationMetadataId": "df688cf8-cd6b-4ae6-b155-abf5c91d3b9f",
+                    "tableId": null
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_excelonlinebusiness",
+                      "operationId": "RunScriptProd",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                    },
+                    "parameters": {
+                      "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
+                      "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
+                      "file": "01OW33XMIBRHETP5OBBZDL4CEYZIPAVDN6",
+                      "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YKGDYBCUXO2FZE3HGNFF6PCGCCH",
+                      "ScriptParameters/headcountJson": "@string(body('List_rows_Headcount')?['value'])",
+                      "ScriptParameters/addressJson": "@string(body('List_rows_Address')?['value'])"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "2335a296-275d-43ef-94af-9d358c890c17"
+              },
+              "type": "Scope"
+            },
+            "Scope_Catch": {
+              "actions": {
+                "Filter_FailedActions": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "79d4b863-6cc3-4426-a336-4b4d367040f0"
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@result('Scope_Try')",
+                    "where": "@equals(item()?['status'], 'Failed')"
+                  }
+                },
+                "Compose_ErrorMessage": {
+                  "runAfter": {
+                    "Filter_FailedActions": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "e7398a60-13e8-48ae-bfa9-ec051a281530"
+                  },
+                  "type": "Compose",
+                  "inputs": "@replace(replace(if(empty(body('Filter_FailedActions')), 'EOP sync failed (no failed action detail).', concat('Action ''', first(body('Filter_FailedActions'))?['name'], ''' failed: ', coalesce(first(body('Filter_FailedActions'))?['outputs']?['body']?['message'], first(body('Filter_FailedActions'))?['error']?['message'], string(first(body('Filter_FailedActions'))?['error']), 'no detail'))), '\\', '\\\\'), '\"', '\\\"')"
+                },
+                "Compose_LogEntry_EopFailure": {
+                  "runAfter": {
+                    "Compose_ErrorMessage": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "3742d43f-6380-4ffa-bade-3399a71765ec"
+                  },
+                  "type": "Compose",
+                  "inputs": "@json(concat('[[\"', variables('varCorrelationId'), '\",\"EOP_Ge.xlsx\",\"EopSync\",\"', variables('varStartTime'), '\",\"', variables('varStartTime'), '\",\"', utcNow(), '\",', div(sub(ticks(utcNow()), ticks(variables('varStartTime'))), 10000000), ',\"Failure\",0,\"', outputs('Compose_ErrorMessage'), '\",\"', workflow()?['run']?['name'], '\"]]'))"
+                },
+                "Run_script_Log_EopFailure": {
+                  "runAfter": {
+                    "Compose_LogEntry_EopFailure": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "01OW33XMMMAVAWH535IFA3CEK2FFOOYUB7": "/FLEET GERMANY/Fines/Fines_Payroll-Input/Fines Output/Fines_Log.xlsx",
+                    "operationMetadataId": "c628be79-1ef3-4ebf-a7eb-89357eea5b0d",
+                    "tableId": null
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_excelonlinebusiness",
+                      "operationId": "RunScriptProd",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                    },
+                    "parameters": {
+                      "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
+                      "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
+                      "file": "01OW33XMMMAVAWH535IFA3CEK2FFOOYUB7",
+                      "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YNXHHJ75CT3JJF2MRGBTYSA4BAI",
+                      "ScriptParameters/tableName": "tblFinesLog",
+                      "ScriptParameters/rowsJson": "@string(outputs('Compose_LogEntry_EopFailure'))"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Post_message_in_a_chat_or_channel": {
+                  "runAfter": {
+                    "Run_script_Log_EopFailure": [
+                      "Succeeded",
+                      "Failed"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "c57f132c-6eaf-4a07-a47f-f46d732262ae"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_teams",
+                      "operationId": "PostMessageToConversation",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                    },
+                    "parameters": {
+                      "poster": "User",
+                      "location": "Channel",
+                      "body/recipient/groupId": "482dae98-318c-42d9-a7d5-54cc23968ef2",
+                      "body/recipient/channelId": "19:_1NJtZj2ZMy00h9iDGPQD1N-_oaLv5Gq-0PBGSc0iVY1@thread.tacv2",
+                      "body/messageBody": "<p>🔴 <b>EOP sync failed</b></p>\n<p>@{outputs('Compose_ErrorMessage')}</p>\n<p>CorrelationId: @{variables('varCorrelationId')}</p>",
+                      "body/subject": "⚠️ GE EOP sync failed"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Terminate_EopSync_Failed": {
+                  "runAfter": {
+                    "Post_message_in_a_chat_or_channel": [
+                      "Succeeded",
+                      "Failed",
+                      "Skipped",
+                      "TimedOut"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "252f60c0-29a1-4c90-bcea-dcc8fb2902e2"
+                  },
+                  "type": "Terminate",
+                  "inputs": {
+                    "runStatus": "Failed",
+                    "runError": {
+                      "code": "EOP_SYNC_FAILED",
+                      "message": "GE EOP sync failed. EOP_DATA.xlsx may hold stale/partial data - Normal & Fair matching is degraded until re-run. See the Teams alert and this run in history."
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Scope_Try": [
+                  "Failed",
+                  "Skipped",
+                  "TimedOut"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "1394821d-9df0-4230-af74-c9e6bfb70e5c"
+              },
+              "type": "Scope"
+            }
+          },
+          "runAfter": {
+            "Get_file_metadata_EopSource": [
+              "Succeeded"
+            ]
+          },
+          "else": {
+            "actions": {
+              "Compose_LogEntry_SourceTooSmall": {
+                "runAfter": {},
+                "metadata": {
+                  "operationMetadataId": "8c08f7db-a9e7-4b79-b115-f0cab644fd89"
+                },
+                "type": "Compose",
+                "inputs": "@json(concat('[[\"', variables('varCorrelationId'), '\",\"EOP_Ge.xlsx\",\"EopSync\",\"', variables('varStartTime'), '\",\"', variables('varStartTime'), '\",\"', utcNow(), '\",', div(sub(ticks(utcNow()), ticks(variables('varStartTime'))), 10000000), ',\"Failure\",0,\"Source EOP_Ge.xlsx too small (', string(int(outputs('Get_file_metadata_EopSource')?['body/Size'])), ' bytes, threshold 200000) — sync skipped.\",\"', workflow()?['run']?['name'], '\"]]'))"
+              },
+              "Run_script_Log_SourceTooSmall": {
+                "runAfter": {
+                  "Compose_LogEntry_SourceTooSmall": [
+                    "Succeeded"
+                  ]
+                },
+                "metadata": {
+                  "01OW33XMMMAVAWH535IFA3CEK2FFOOYUB7": "/FLEET GERMANY/Fines/Fines_Payroll-Input/Fines Output/Fines_Log.xlsx",
+                  "operationMetadataId": "a85ea866-8546-415b-9cd5-59fb220c61f5",
+                  "tableId": null
+                },
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "connectionName": "shared_excelonlinebusiness_1",
+                    "operationId": "RunScriptProd",
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                  },
+                  "parameters": {
+                    "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
+                    "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
+                    "file": "01OW33XMMMAVAWH535IFA3CEK2FFOOYUB7",
+                    "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YNXHHJ75CT3JJF2MRGBTYSA4BAI",
+                    "ScriptParameters/tableName": "tblFinesLog",
+                    "ScriptParameters/rowsJson": "@string(outputs('Compose_LogEntry_SourceTooSmall'))"
+                  },
+                  "authentication": "@parameters('$authentication')"
+                }
+              },
+              "Post_Teams_SourceTooSmall": {
+                "runAfter": {
+                  "Run_script_Log_SourceTooSmall": [
+                    "Succeeded",
+                    "Failed"
+                  ]
+                },
+                "metadata": {
+                  "operationMetadataId": "131cafea-930d-4933-bd81-1114091001fd"
+                },
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "connectionName": "shared_teams",
+                    "operationId": "PostMessageToConversation",
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                  },
+                  "parameters": {
+                    "poster": "User",
+                    "location": "Channel",
+                    "body/recipient/groupId": "482dae98-318c-42d9-a7d5-54cc23968ef2",
+                    "body/recipient/channelId": "19:_1NJtZj2ZMy00h9iDGPQD1N-_oaLv5Gq-0PBGSc0iVY1@thread.tacv2",
+                    "body/messageBody": "<p>⚠️ <b>EOP sync skipped — source too small</b></p>\n<p>EOP_Ge.xlsx is @{string(int(outputs('Get_file_metadata_EopSource')?['body/Size']))} bytes (threshold 200000).</p>\n<p>CorrelationId: @{variables('varCorrelationId')}</p>",
+                    "body/subject": "⚠️ GE EOP skipped - source too small"
+                  },
+                  "authentication": "@parameters('$authentication')"
+                }
+              },
+              "Terminate_SourceTooSmall": {
+                "runAfter": {
+                  "Post_Teams_SourceTooSmall": [
+                    "Succeeded",
+                    "TimedOut",
+                    "Skipped",
+                    "Failed"
+                  ]
+                },
+                "metadata": {
+                  "operationMetadataId": "ccab5cbc-7997-4287-9aac-f86d64daf09e"
+                },
+                "type": "Terminate",
+                "inputs": {
+                  "runStatus": "Failed",
+                  "runError": {
+                    "code": "SOURCE_TOO_SMALL",
+                    "message": "EOP_Ge.xlsx is smaller than 200000 bytes. EOP_DATA was not replaced and still holds the previous dump - fines matching is slightly stale until the source is fixed."
+                  }
+                }
+              }
+            }
+          },
+          "expression": {
+            "greater": [
+              "@int(outputs('Get_file_metadata_EopSource')?['body/Size'])",
+              200000
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "9a04fe0c-0b56-404d-9060-c7d5dd71f092"
+          },
+          "type": "If"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

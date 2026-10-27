@@ -1,0 +1,1021 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_excelonlinebusiness_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedexcelonlinebusiness_9ce6e"
+        },
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      },
+      "shared_office365_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedoffice365_71f08"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "Match Failed Notify Email (sk_MatchFailedNotifyEmail)": {
+          "defaultValue": "Serhii.Klym-ext@ab-Inbev.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "sk_MatchFailedNotifyEmail"
+          }
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Week",
+            "interval": 1,
+            "timeZone": "W. Europe Standard Time",
+            "startTime": "2026-10-26T08:00:00Z",
+            "schedule": {
+              "weekDays": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday"
+              ],
+              "hours": [
+                "8",
+                "9",
+                "10",
+                "11",
+                "12",
+                "14",
+                "13",
+                "15",
+                "16",
+                "17",
+                "18"
+              ]
+            }
+          },
+          "evaluatedRecurrence": {
+            "frequency": "Week",
+            "interval": 1,
+            "timeZone": "W. Europe Standard Time",
+            "startTime": "2026-10-26T08:00:00Z",
+            "schedule": {
+              "weekDays": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday"
+              ],
+              "hours": [
+                "8",
+                "9",
+                "10",
+                "11",
+                "12",
+                "14",
+                "13",
+                "15",
+                "16",
+                "17",
+                "18"
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "1e9cc96b-34b9-4007-8e5d-285c45523d65"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "List_Pending_Fines": {
+          "runAfter": {},
+          "metadata": {
+            "01OW33XMJQA7LUSF62TREJCJMIBVHNB7ON": "/FLEET GERMANY/Fines/Fines_Payroll-Input/Fines Output/Fines_Data.xlsx",
+            "operationMetadataId": "d23fe365-8a79-4a5f-b76f-a1ae2f5cf69b",
+            "tableId": "{397CFC54-FB24-4BB0-B8E1-9D356D501D2D}"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_excelonlinebusiness_1",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+            },
+            "parameters": {
+              "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
+              "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
+              "file": "01OW33XMJQA7LUSF62TREJCJMIBVHNB7ON",
+              "table": "{397CFC54-FB24-4BB0-B8E1-9D356D501D2D}",
+              "$filter": "MailStatus eq 'Pending'"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runtimeConfiguration": {
+            "paginationPolicy": {
+              "minimumItemCount": 5000
+            }
+          }
+        },
+        "For_each_Pending_Fine": {
+          "foreach": "@outputs('List_Pending_Fines')?['body/value']",
+          "actions": {
+            "If_Status_Passed": {
+              "actions": {
+                "Run_script_Dump_FindByPlate": {
+                  "runAfter": {},
+                  "metadata": {
+                    "01OW33XMMR7M7LI5AC2RCZ3OHMR2BUMO7O": "/FLEET GERMANY/Fines/Fines_Payroll-Input/DUMP_AUTOMATION_FILE/DUMP_INPUT_TEST.xlsx",
+                    "operationMetadataId": "9566dc00-fc27-4179-85fb-e983fb3f6922",
+                    "tableId": null
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_excelonlinebusiness_1",
+                      "operationId": "RunScriptProd",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                    },
+                    "parameters": {
+                      "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
+                      "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
+                      "file": "01OW33XMMR7M7LI5AC2RCZ3OHMR2BUMO7O",
+                      "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YJRH6GHAKAPVBFJA6INX3W5QSSN",
+                      "ScriptParameters/plateRaw": "@item()?['PlateNumber']",
+                      "ScriptParameters/offenceDate": "@item()?['OffenceDate']"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "If_Dump_Found": {
+                  "actions": {
+                    "Run_script_Eop_FindByPn": {
+                      "runAfter": {},
+                      "metadata": {
+                        "01OW33XMIBRHETP5OBBZDL4CEYZIPAVDN6": "/FLEET GERMANY/Fines/Fines_Payroll-Input/DUMP_AUTOMATION_FILE/EOP_DATA.xlsx",
+                        "operationMetadataId": "a5421485-20fb-49b1-99ec-ae5b2bc3bc54",
+                        "tableId": null
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connectionName": "shared_excelonlinebusiness_1",
+                          "operationId": "RunScriptProd",
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                        },
+                        "parameters": {
+                          "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
+                          "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
+                          "file": "01OW33XMIBRHETP5OBBZDL4CEYZIPAVDN6",
+                          "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YPPFXJMAYD2MBAL4UCY4GQGQZRR",
+                          "ScriptParameters/personalnummer": "@  body('Run_script_Dump_FindByPlate')?['result']?['personalnummer']"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    },
+                    "If_Eop_Found_And_Email": {
+                      "actions": {
+                        "Set_varPersonalnummer": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "ba4d1f1d-b77c-4acf-9cf3-e7a5d74a3834"
+                          },
+                          "type": "SetVariable",
+                          "inputs": {
+                            "name": "varPersonalnummer",
+                            "value": "@{body('Run_script_Dump_FindByPlate')?['result']?['personalnummer']}"
+                          }
+                        },
+                        "Set_varEmployeeName": {
+                          "runAfter": {
+                            "Set_varPersonalnummer": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "091ed0c5-f8b2-4216-8eb8-3ebb55247fe2"
+                          },
+                          "type": "SetVariable",
+                          "inputs": {
+                            "name": "varEmployeeName",
+                            "value": "@{body('Run_script_Eop_FindByPn')?['result']?['employeeName']}"
+                          }
+                        },
+                        "Set_varEmployeeEmail": {
+                          "runAfter": {
+                            "Set_varEmployeeName": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "e9f12da8-40b2-48c7-a66d-e47f46d3ca16"
+                          },
+                          "type": "SetVariable",
+                          "inputs": {
+                            "name": "varEmployeeEmail",
+                            "value": "@{body('Run_script_Eop_FindByPn')?['result']?['employeeEmail']}"
+                          }
+                        },
+                        "Set_varEmployeeAddress": {
+                          "runAfter": {
+                            "Set_varEmployeeEmail": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "90467773-8bad-49d6-a4cb-f101385fb373"
+                          },
+                          "type": "SetVariable",
+                          "inputs": {
+                            "name": "varEmployeeAddress",
+                            "value": "@{body('Run_script_Eop_FindByPn')?['result']?['employeeAddress']}"
+                          }
+                        },
+                        "Set_varDriverSource": {
+                          "runAfter": {
+                            "Set_varEmployeeAddress": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "18ff97b0-4d3e-4b1a-a14b-1e91479e1100"
+                          },
+                          "type": "SetVariable",
+                          "inputs": {
+                            "name": "varDriverSource",
+                            "value": "DUMP"
+                          }
+                        },
+                        "Set_varVehicleFrom": {
+                          "runAfter": {
+                            "Set_varDriverSource": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "f881d583-e1b6-4402-9a1a-9f1d23a2070a"
+                          },
+                          "type": "SetVariable",
+                          "inputs": {
+                            "name": "varVehicleFrom",
+                            "value": "@{body('Run_script_Dump_FindByPlate')?['result']?['vehicleFrom']}"
+                          }
+                        },
+                        "Set_varMailStatus": {
+                          "runAfter": {
+                            "Set_varVehicleFrom": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "c40b0bab-15ea-4218-9dc1-1351d54f1505"
+                          },
+                          "type": "SetVariable",
+                          "inputs": {
+                            "name": "varMailStatus",
+                            "value": "Matched"
+                          }
+                        },
+                        "Set_varMatchNote": {
+                          "runAfter": {
+                            "Set_varMailStatus": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "09335a1a-7715-4ea6-9dc3-2af8e69da9d8"
+                          },
+                          "type": "SetVariable",
+                          "inputs": {
+                            "name": "varMatchNote",
+                            "value": "@{''}"
+                          }
+                        }
+                      },
+                      "runAfter": {
+                        "Run_script_Eop_FindByPn": [
+                          "Succeeded"
+                        ]
+                      },
+                      "else": {
+                        "actions": {
+                          "Set_varPersonalnummer_No": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "563f254f-1178-4398-bc0a-8ff6fcfad3d5"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varPersonalnummer",
+                              "value": "@{body('Run_script_Dump_FindByPlate')?['result']?['personalnummer']}"
+                            }
+                          },
+                          "Set_varEmployeeName_No": {
+                            "runAfter": {
+                              "Set_varPersonalnummer_No": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "cf4ff2bc-daa0-4d97-962a-4b18fab4be28"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varEmployeeName",
+                              "value": "@{''}"
+                            }
+                          },
+                          "Set_varEmployeeEmail_No": {
+                            "runAfter": {
+                              "Set_varEmployeeName_No": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "4fafcc19-4de4-4709-9db2-630bc52a40ff"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varEmployeeEmail",
+                              "value": "@{''}"
+                            }
+                          },
+                          "Set_varEmployeeAddress_No": {
+                            "runAfter": {
+                              "Set_varEmployeeEmail_No": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "ff60ab59-fc20-400e-a5ad-c24aa11150a6"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varEmployeeAddress",
+                              "value": "@{''}"
+                            }
+                          },
+                          "Set_varDriverSource_No": {
+                            "runAfter": {
+                              "Set_varEmployeeAddress_No": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "9dbaa701-7ddb-40ba-a752-49ef7cf4a417"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varDriverSource",
+                              "value": "DUMP"
+                            }
+                          },
+                          "Set_varVehicleFrom_No": {
+                            "runAfter": {
+                              "Set_varDriverSource_No": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "8590406d-51fe-446b-ac46-e1689fcf1ef9"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varVehicleFrom",
+                              "value": "@{body('Run_script_Dump_FindByPlate')?['result']?['vehicleFrom']}"
+                            }
+                          },
+                          "Set_varMailStatus_No": {
+                            "runAfter": {
+                              "Set_varVehicleFrom_No": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "e3d30aea-3b1b-4b6d-9217-d1d0c931cdb6"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varMailStatus",
+                              "value": "MatchFailed"
+                            }
+                          },
+                          "Set_varMatchNote_No": {
+                            "runAfter": {
+                              "Set_varMailStatus_No": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "e20fb6bc-a455-4ce0-b77b-96b4a6e54d66"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varMatchNote",
+                              "value": "@{concat('PN ', body('Run_script_Dump_FindByPlate')?['result']?['personalnummer'], ' not found in EOP or has no email')}"
+                            }
+                          }
+                        }
+                      },
+                      "expression": {
+                        "and": [
+                          {
+                            "equals": [
+                              "@body('Run_script_Eop_FindByPn')?['result']?['found']",
+                              "@true"
+                            ]
+                          },
+                          {
+                            "equals": [
+                              "@empty(body('Run_script_Eop_FindByPn')?['result']?['employeeEmail'])",
+                              "@false"
+                            ]
+                          }
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "7b750be2-7d5d-4a99-9cf7-dc48b87e3ecf"
+                      },
+                      "type": "If"
+                    }
+                  },
+                  "runAfter": {
+                    "Run_script_Dump_FindByPlate": [
+                      "Succeeded"
+                    ]
+                  },
+                  "else": {
+                    "actions": {
+                      "Run_script_Pool_FindByPlateAndDate": {
+                        "runAfter": {},
+                        "metadata": {
+                          "01OW33XML2UFHXST2XHFEZCETZAPMED6FC": "/FLEET GERMANY/Fines/Fines_Payroll-Input/DUMP_AUTOMATION_FILE/POOL_DATA.xlsx",
+                          "operationMetadataId": "f577af90-d54d-420d-b500-52a2b55de8df",
+                          "tableId": null
+                        },
+                        "type": "OpenApiConnection",
+                        "inputs": {
+                          "host": {
+                            "connectionName": "shared_excelonlinebusiness_1",
+                            "operationId": "RunScriptProd",
+                            "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                          },
+                          "parameters": {
+                            "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
+                            "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
+                            "file": "01OW33XML2UFHXST2XHFEZCETZAPMED6FC",
+                            "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YJ6GBGP3HX4ZFD3DKYXYJGYUZUL",
+                            "ScriptParameters/plateRaw": "@item()?['PlateNumber']",
+                            "ScriptParameters/offenceDate": "@item()?['OffenceDate']"
+                          },
+                          "authentication": "@parameters('$authentication')"
+                        }
+                      },
+                      "If_Pool_Found": {
+                        "actions": {
+                          "Set_varPersonalnummer_PY": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "0a4d7be3-065d-4eaa-8a32-e52c1dc3a242"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varPersonalnummer",
+                              "value": "@{body('Run_script_Pool_FindByPlateAndDate')?['result']?['personalId']}"
+                            }
+                          },
+                          "Set_varEmployeeName_PY": {
+                            "runAfter": {
+                              "Set_varPersonalnummer_PY": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "96e9a5e6-4258-4950-941b-e347010ab23d"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varEmployeeName",
+                              "value": "@{body('Run_script_Pool_FindByPlateAndDate')?['result']?['driverName']}"
+                            }
+                          },
+                          "Set_varEmployeeEmail_PY": {
+                            "runAfter": {
+                              "Set_varEmployeeName_PY": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "0533594a-fe93-421c-9445-080e9613be9b"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varEmployeeEmail",
+                              "value": "@{body('Run_script_Pool_FindByPlateAndDate')?['result']?['driverEmail']}"
+                            }
+                          },
+                          "Set_varEmployeeAddress_PY": {
+                            "runAfter": {
+                              "Set_varEmployeeEmail_PY": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "8f8075fb-0019-4cc1-a212-2bbcbac7ffac"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varEmployeeAddress",
+                              "value": "@{''}"
+                            }
+                          },
+                          "Set_varDriverSource_PY": {
+                            "runAfter": {
+                              "Set_varEmployeeAddress_PY": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "7aaef09b-d74e-4b1a-b4e9-139cf23fbc04"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varDriverSource",
+                              "value": "Pool"
+                            }
+                          },
+                          "Set_varVehicleFrom_PY": {
+                            "runAfter": {
+                              "Set_varDriverSource_PY": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "30497ded-d054-44a6-af86-07698d43215e"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varVehicleFrom",
+                              "value": "@{body('Run_script_Pool_FindByPlateAndDate')?['result']?['vehicleFrom']}"
+                            }
+                          },
+                          "Set_varMailStatus_PY": {
+                            "runAfter": {
+                              "Set_varVehicleFrom_PY": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "2bc8b1c4-e1f8-4a45-9870-0df44c304aaa"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varMailStatus",
+                              "value": "Matched"
+                            }
+                          },
+                          "Set_varMatchNote_PY": {
+                            "runAfter": {
+                              "Set_varMailStatus_PY": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "19c1e9cd-f85b-4cbf-9bba-11ef1ce8b104"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "varMatchNote",
+                              "value": "@{''}"
+                            }
+                          }
+                        },
+                        "runAfter": {
+                          "Run_script_Pool_FindByPlateAndDate": [
+                            "Succeeded"
+                          ]
+                        },
+                        "else": {
+                          "actions": {
+                            "Set_varPersonalnummer_PN": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "f59cbb51-8e37-4a9a-aa60-cd34c0bdd603"
+                              },
+                              "type": "SetVariable",
+                              "inputs": {
+                                "name": "varPersonalnummer",
+                                "value": "@{''}"
+                              }
+                            },
+                            "Set_varEmployeeName_PN": {
+                              "runAfter": {
+                                "Set_varPersonalnummer_PN": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "metadata": {
+                                "operationMetadataId": "0b2a8518-96f1-4731-af04-e42676352cfb"
+                              },
+                              "type": "SetVariable",
+                              "inputs": {
+                                "name": "varEmployeeName",
+                                "value": "@{''}"
+                              }
+                            },
+                            "Set_varEmployeeEmail_PN": {
+                              "runAfter": {
+                                "Set_varEmployeeName_PN": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "metadata": {
+                                "operationMetadataId": "cb3b297f-3991-4b09-a45a-d142e79fbfcc"
+                              },
+                              "type": "SetVariable",
+                              "inputs": {
+                                "name": "varEmployeeEmail",
+                                "value": "@{''}"
+                              }
+                            },
+                            "Set_varEmployeeAddress_PN": {
+                              "runAfter": {
+                                "Set_varEmployeeEmail_PN": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "metadata": {
+                                "operationMetadataId": "7545ae6d-6548-4ad6-aec2-7377064639a8"
+                              },
+                              "type": "SetVariable",
+                              "inputs": {
+                                "name": "varEmployeeAddress",
+                                "value": "@{''}"
+                              }
+                            },
+                            "Set_varDriverSource_PN": {
+                              "runAfter": {
+                                "Set_varEmployeeAddress_PN": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "metadata": {
+                                "operationMetadataId": "61337324-7010-4358-9669-5f6f7f9d6644"
+                              },
+                              "type": "SetVariable",
+                              "inputs": {
+                                "name": "varDriverSource",
+                                "value": "@{''}"
+                              }
+                            },
+                            "Set_varVehicleFrom_PN": {
+                              "runAfter": {
+                                "Set_varDriverSource_PN": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "metadata": {
+                                "operationMetadataId": "f53dd3f7-0500-4578-897e-c3cf6063a533"
+                              },
+                              "type": "SetVariable",
+                              "inputs": {
+                                "name": "varVehicleFrom",
+                                "value": "@{''}"
+                              }
+                            },
+                            "Set_varMailStatus_PN": {
+                              "runAfter": {
+                                "Set_varVehicleFrom_PN": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "metadata": {
+                                "operationMetadataId": "7672f6e1-937b-4b15-b7d4-3a7b40a4c615"
+                              },
+                              "type": "SetVariable",
+                              "inputs": {
+                                "name": "varMailStatus",
+                                "value": "MatchFailed"
+                              }
+                            },
+                            "Set_varMatchNote_PN": {
+                              "runAfter": {
+                                "Set_varMailStatus_PN": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "metadata": {
+                                "operationMetadataId": "bcd20ce6-e8d0-4e91-9637-411afaa0c594"
+                              },
+                              "type": "SetVariable",
+                              "inputs": {
+                                "name": "varMatchNote",
+                                "value": "@{concat(\r\n  'No driver. DUMP: ',\r\n  if(body('Run_script_Dump_FindByPlate')?['result']?['plateNoPn'], 'plate present but no Personalnummer (pool car)', if(body('Run_script_Dump_FindByPlate')?['result']?['dateFiltered'], 'plate present but handover after offence', if(body('Run_script_Dump_FindByPlate')?['result']?['plateInDump'], 'plate present, no usable row', 'plate not in dump'))),\r\n  '. POOL: ',\r\n  if(body('Run_script_Pool_FindByPlateAndDate')?['result']?['windowFiltered'], 'plate present but offence outside window', if(body('Run_script_Pool_FindByPlateAndDate')?['result']?['plateInPool'], 'plate present, date unparsed', 'plate not in pool')),\r\n  '.'\r\n)}"
+                              }
+                            }
+                          }
+                        },
+                        "expression": {
+                          "equals": [
+                            "@body('Run_script_Pool_FindByPlateAndDate')?['result']?['found']",
+                            "@true"
+                          ]
+                        },
+                        "metadata": {
+                          "operationMetadataId": "a97f8e42-306a-4eda-a2c0-2eb7ac0ad1f9"
+                        },
+                        "type": "If"
+                      }
+                    }
+                  },
+                  "expression": {
+                    "equals": [
+                      "@  body('Run_script_Dump_FindByPlate')?['result']?['found']",
+                      "@true"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "cdb55305-6ac2-4adb-a6c6-759b7afd1b12"
+                  },
+                  "type": "If"
+                },
+                "Run_script_UpdateMatchState": {
+                  "runAfter": {
+                    "If_Dump_Found": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "01OW33XMJQA7LUSF62TREJCJMIBVHNB7ON": "/FLEET GERMANY/Fines/Fines_Payroll-Input/Fines Output/Fines_Data.xlsx",
+                    "operationMetadataId": "074d2c7a-0e01-4873-b555-f2bcf5f6fcab",
+                    "tableId": null
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_excelonlinebusiness_1",
+                      "operationId": "RunScriptProd",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                    },
+                    "parameters": {
+                      "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
+                      "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
+                      "file": "01OW33XMJQA7LUSF62TREJCJMIBVHNB7ON",
+                      "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YNVHHF36NH5RJFYZWOKZG4NVZDD",
+                      "ScriptParameters/rowId": "@item()?['RowId']",
+                      "ScriptParameters/personalnummer": "@variables('varPersonalnummer')",
+                      "ScriptParameters/employeeName": "@variables('varEmployeeName')",
+                      "ScriptParameters/employeeEmail": "@variables('varEmployeeEmail')",
+                      "ScriptParameters/employeeAddress": "@variables('varEmployeeAddress')",
+                      "ScriptParameters/driverSource": "@variables('varDriverSource')",
+                      "ScriptParameters/vehicleFrom": "@variables('varVehicleFrom')",
+                      "ScriptParameters/mailStatus": "@variables('varMailStatus')",
+                      "ScriptParameters/matchNote": "@variables('varMatchNote')"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "If_MatchFailed": {
+                  "actions": {
+                    "Send_an_email_(V2)": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "24d488f3-d06b-4010-b275-73aa4624fe8a"
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connectionName": "shared_office365_1",
+                          "operationId": "SendEmailV2",
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                        },
+                        "parameters": {
+                          "emailMessage/To": "@parameters('Match Failed Notify Email (sk_MatchFailedNotifyEmail)')",
+                          "emailMessage/Subject": "Test",
+                          "emailMessage/Body": "<p>test</p>",
+                          "emailMessage/Importance": "Normal"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "Run_script_UpdateMatchState": [
+                      "Succeeded"
+                    ]
+                  },
+                  "expression": {
+                    "equals": [
+                      "@variables('varMailStatus')",
+                      "MatchFailed"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "28f6aaac-aee3-4138-a77b-a4a7bf367bb7"
+                  },
+                  "type": "If"
+                }
+              },
+              "runAfter": {},
+              "expression": {
+                "equals": [
+                  "@item()?['Status']",
+                  "Passed"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "d0983b09-30ba-4821-a9c1-c4f52f1db663"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "Initialize_varMatchNote": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "b740a156-e1a0-494e-8964-f3a9617d33e3"
+          },
+          "type": "Foreach",
+          "runtimeConfiguration": {
+            "concurrency": {
+              "repetitions": 1
+            }
+          }
+        },
+        "Initialize_varPersonalnummer": {
+          "runAfter": {
+            "List_Pending_Fines": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7cf2c9b5-bd3c-482c-8827-608b4fac53d8"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varPersonalnummer",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_varEmployeeName": {
+          "runAfter": {
+            "Initialize_varPersonalnummer": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "bb02fa89-5e6f-4392-8f81-adadab2df353"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varEmployeeName",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_varEmployeeEmail": {
+          "runAfter": {
+            "Initialize_varEmployeeName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "3d047eab-bb06-4258-bc4e-c295e214d2c4"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varEmployeeEmail",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_varEmployeeAddress": {
+          "runAfter": {
+            "Initialize_varEmployeeEmail": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "431e5ba3-7bea-4a02-9ffa-538c5ac990de"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varEmployeeAddress",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_varDriverSource": {
+          "runAfter": {
+            "Initialize_varEmployeeAddress": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "019f7beb-5c90-4a05-869c-6d4f683353a5"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varDriverSource",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_varVehicleFrom": {
+          "runAfter": {
+            "Initialize_varDriverSource": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f422ce22-2d9a-486e-a598-b12e493e8ac3"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varVehicleFrom",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_varMailStatus": {
+          "runAfter": {
+            "Initialize_varVehicleFrom": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "5806db86-f2cd-45e2-86e9-21235157911b"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varMailStatus",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_varMatchNote": {
+          "runAfter": {
+            "Initialize_varMailStatus": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "222c46cd-3ddc-4d48-9911-499f5d5e1515"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varMatchNote",
+                "type": "string"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

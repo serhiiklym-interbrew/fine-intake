@@ -1,0 +1,489 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedsharepointonline_b37ee"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedsharepointonline_d8fb4"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_excelonlinebusiness_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedexcelonlinebusiness_9ce6e"
+        },
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      },
+      "shared_teams_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedteams_0404f"
+        },
+        "api": {
+          "name": "shared_teams"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Week",
+            "interval": 1,
+            "timeZone": "W. Europe Standard Time",
+            "startTime": "2026-10-16T06:30:00Z",
+            "schedule": {
+              "weekDays": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday"
+              ],
+              "hours": [
+                "8"
+              ],
+              "minutes": [
+                30
+              ]
+            }
+          },
+          "evaluatedRecurrence": {
+            "frequency": "Week",
+            "interval": 1,
+            "timeZone": "W. Europe Standard Time",
+            "startTime": "2026-10-16T06:30:00Z",
+            "schedule": {
+              "weekDays": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday"
+              ],
+              "hours": [
+                "8"
+              ],
+              "minutes": [
+                30
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "69156abf-87a6-4941-9cea-dcf0e3be27f2"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Get_file_metadata_DumpFile": {
+          "runAfter": {
+            "Initialize_variable": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e40445f9-370b-4db9-81ba-70bce6c9931c"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline_1",
+              "operationId": "GetFileMetadataByPath",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "https://anheuserbuschinbev.sharepoint.com/sites/FleetEurope",
+              "path": "/Shared Documents/FLEET GERMANY/Invoice Processing/Vendor Invoices/KOK & Dump Files/DumpFile.xlsx"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Condition_DumpFile_Size_OK": {
+          "actions": {
+            "Scope_Try": {
+              "actions": {
+                "Get_content_DumpFile": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "fe43500e-c9b4-4abb-b4c2-6351b82609cb"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "GetFileContentByPath",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                    },
+                    "parameters": {
+                      "dataset": "https://anheuserbuschinbev.sharepoint.com/sites/FleetEurope",
+                      "path": "/Shared Documents/FLEET GERMANY/Invoice Processing/Vendor Invoices/KOK & Dump Files/DumpFile.xlsx",
+                      "inferContentType": false
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Update_DUMP_INPUT": {
+                  "runAfter": {
+                    "Get_content_DumpFile": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "%252fShared%2bDocuments%252fFLEET%2bGERMANY%252fFines%252fFines_Payroll-Input%252fDUMP_AUTOMATION_FILE%252fDUMP_INPUT.xlsx": "/Shared Documents/FLEET GERMANY/Fines/Fines_Payroll-Input/DUMP_AUTOMATION_FILE/DUMP_INPUT.xlsx",
+                    "operationMetadataId": "dec745bb-d6f9-497e-95ab-38e387370c01",
+                    "%252fShared%2bDocuments%252fFLEET%2bGERMANY%252fFines%252fFines_Payroll-Input%252fDUMP_AUTOMATION_FILE%252fDUMP_INPUT_TEST.xlsx": "/Shared Documents/FLEET GERMANY/Fines/Fines_Payroll-Input/DUMP_AUTOMATION_FILE/DUMP_INPUT_TEST.xlsx"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_sharepointonline_1",
+                      "operationId": "UpdateFile",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                    },
+                    "parameters": {
+                      "dataset": "https://anheuserbuschinbev.sharepoint.com/sites/FleetEurope",
+                      "id": "%252fShared%2bDocuments%252fFLEET%2bGERMANY%252fFines%252fFines_Payroll-Input%252fDUMP_AUTOMATION_FILE%252fDUMP_INPUT_TEST.xlsx",
+                      "body": "@body('Get_content_DumpFile')"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Run_script_Build_DUMP_DATA": {
+                  "runAfter": {
+                    "Update_DUMP_INPUT": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "01OW33XMMWDPJG5EUQBBHIRMLF6MKAKVEP": "/FLEET GERMANY/Fines/Fines_Payroll-Input/DUMP_AUTOMATION_FILE/DUMP_INPUT.xlsx",
+                    "operationMetadataId": "a763f9ba-fb61-4a28-8f36-bd5cc6496761",
+                    "tableId": null,
+                    "01OW33XMMR7M7LI5AC2RCZ3OHMR2BUMO7O": "/FLEET GERMANY/Fines/Fines_Payroll-Input/DUMP_AUTOMATION_FILE/DUMP_INPUT_TEST.xlsx"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_excelonlinebusiness_1",
+                      "operationId": "RunScriptProd",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                    },
+                    "parameters": {
+                      "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
+                      "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
+                      "file": "01OW33XMMR7M7LI5AC2RCZ3OHMR2BUMO7O",
+                      "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YMFALZNTQDMBJE34K4DOIR6H2W2"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "838da01b-1204-4c0d-87f8-59106832ce85"
+              },
+              "type": "Scope"
+            },
+            "Scope_Catch": {
+              "actions": {
+                "Filter_FailedActions": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "237ee3b6-a4d1-4f5a-9181-06fa4abe89ba"
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@result('Scope_Try')",
+                    "where": "@equals(item()?['status'], 'Failed')"
+                  }
+                },
+                "Compose_ErrorMessage": {
+                  "runAfter": {
+                    "Filter_FailedActions": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "9e91e0b5-1a3c-4df2-9f66-6bb4402e6880"
+                  },
+                  "type": "Compose",
+                  "inputs": "@replace(replace(replace(replace(coalesce(first(body('Filter_FailedActions'))?['outputs']?['body']?['message'], first(body('Filter_FailedActions'))?['error']?['message'], 'DUMP sync failed'), '\"', ''), decodeUriComponent('%0A'), ' '), '\\', '\\\\'), '\"', '\\\"')"
+                },
+                "Compose_LogEntry_DumpFailure": {
+                  "runAfter": {
+                    "Compose_ErrorMessage": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "747c5920-dda2-46da-99f3-153476146be7"
+                  },
+                  "type": "Compose",
+                  "inputs": "@json(concat('[[\"', variables('varCorrelationId'), '\",\"DumpFile.xlsx\",\"DumpSync\",\"', variables('varStartTime'), '\",\"', variables('varStartTime'), '\",\"', utcNow(), '\",', div(sub(ticks(utcNow()), ticks(variables('varStartTime'))), 10000000), ',\"Failure\",0,\"', outputs('Compose_ErrorMessage'), '\",\"', workflow()?['run']?['name'], '\"]]'))"
+                },
+                "Run_script_Log_DumpFailure": {
+                  "runAfter": {
+                    "Compose_LogEntry_DumpFailure": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "01OW33XMMMAVAWH535IFA3CEK2FFOOYUB7": "/FLEET GERMANY/Fines/Fines_Payroll-Input/Fines Output/Fines_Log.xlsx",
+                    "operationMetadataId": "0c372116-f745-475b-a600-0e7fd06c5baf",
+                    "tableId": null
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_excelonlinebusiness_1",
+                      "operationId": "RunScriptProd",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                    },
+                    "parameters": {
+                      "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
+                      "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
+                      "file": "01OW33XMMMAVAWH535IFA3CEK2FFOOYUB7",
+                      "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YNXHHJ75CT3JJF2MRGBTYSA4BAI",
+                      "ScriptParameters/tableName": "tblFinesLog",
+                      "ScriptParameters/rowsJson": "@string(outputs('Compose_LogEntry_DumpFailure'))"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Post_Teams_DumpFailure": {
+                  "runAfter": {
+                    "Run_script_Log_DumpFailure": [
+                      "Succeeded",
+                      "Failed"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "a8215cdc-ff78-4f40-97b3-23aef1dab679"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_teams_1",
+                      "operationId": "PostMessageToConversation",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                    },
+                    "parameters": {
+                      "poster": "User",
+                      "location": "Channel",
+                      "body/recipient/groupId": "482dae98-318c-42d9-a7d5-54cc23968ef2",
+                      "body/recipient/channelId": "19:_1NJtZj2ZMy00h9iDGPQD1N-_oaLv5Gq-0PBGSc0iVY1@thread.tacv2",
+                      "body/messageBody": "<b>⚠️ DUMP sync failed</b><br>\nThe weekly fleet DUMP was not refreshed. Both fines flows (Normal & Fair) will fail to match plates until this is fixed.<br>\n<b>Error:</b> @{outputs('Compose_ErrorMessage')}<br>\n<b>Run:</b> @{workflow()?['run']?['name']}",
+                      "body/subject": "⚠️ GE DUMP sync failed"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Terminate_DumpSync_Failed": {
+                  "runAfter": {
+                    "Post_Teams_DumpFailure": [
+                      "Succeeded",
+                      "Failed",
+                      "Skipped",
+                      "TimedOut"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "e799abec-a2b5-4d8c-ba7e-949035896e96"
+                  },
+                  "type": "Terminate",
+                  "inputs": {
+                    "runStatus": "Failed",
+                    "runError": {
+                      "code": "DUMP_SYNC_FAILED",
+                      "message": "GE DUMP sync failed. DUMP_INPUT.xlsx may hold stale/partial data - Normal & Fair matching is degraded until re-run. See the Teams alert and this run in history."
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Scope_Try": [
+                  "Failed",
+                  "Skipped",
+                  "TimedOut"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "87c8bd66-b216-4ca2-8802-07d951786aeb"
+              },
+              "type": "Scope"
+            }
+          },
+          "runAfter": {
+            "Get_file_metadata_DumpFile": [
+              "Succeeded"
+            ]
+          },
+          "else": {
+            "actions": {
+              "Compose_LogEntry_SourceTooSmall": {
+                "runAfter": {},
+                "metadata": {
+                  "operationMetadataId": "da793842-4381-49ba-9e68-8e508c402955"
+                },
+                "type": "Compose",
+                "inputs": "@json(concat('[[\"', variables('varCorrelationId'), '\",\"DumpFile.xlsx\",\"DumpSync\",\"', variables('varStartTime'), '\",\"', variables('varStartTime'), '\",\"', utcNow(), '\",', div(sub(ticks(utcNow()), ticks(variables('varStartTime'))), 10000000), ',\"Failure\",0,\"DumpFile.xlsx is smaller than 400000 bytes - DUMP_INPUT not replaced, still holds previous dump.\",\"', workflow()?['run']?['name'], '\"]]'))"
+              },
+              "Run_script_Log_SourceTooSmall": {
+                "runAfter": {
+                  "Compose_LogEntry_SourceTooSmall": [
+                    "Succeeded"
+                  ]
+                },
+                "metadata": {
+                  "01OW33XMMMAVAWH535IFA3CEK2FFOOYUB7": "/FLEET GERMANY/Fines/Fines_Payroll-Input/Fines Output/Fines_Log.xlsx",
+                  "operationMetadataId": "b7190374-5e31-41d8-928b-eaffb68ffaf9",
+                  "tableId": null
+                },
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "connectionName": "shared_excelonlinebusiness_1",
+                    "operationId": "RunScriptProd",
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                  },
+                  "parameters": {
+                    "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
+                    "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
+                    "file": "01OW33XMMMAVAWH535IFA3CEK2FFOOYUB7",
+                    "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YNXHHJ75CT3JJF2MRGBTYSA4BAI",
+                    "ScriptParameters/tableName": "tblFinesLog",
+                    "ScriptParameters/rowsJson": "@string(outputs('Compose_LogEntry_SourceTooSmall'))"
+                  },
+                  "authentication": "@parameters('$authentication')"
+                }
+              },
+              "Post_Teams_SourceTooSmall": {
+                "runAfter": {
+                  "Run_script_Log_SourceTooSmall": [
+                    "Succeeded",
+                    "Failed"
+                  ]
+                },
+                "metadata": {
+                  "operationMetadataId": "1fadb8c1-3090-4747-8598-0d983c3103ca"
+                },
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "connectionName": "shared_teams_1",
+                    "operationId": "PostMessageToConversation",
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                  },
+                  "parameters": {
+                    "poster": "User",
+                    "location": "Channel",
+                    "body/recipient/groupId": "482dae98-318c-42d9-a7d5-54cc23968ef2",
+                    "body/recipient/channelId": "19:_1NJtZj2ZMy00h9iDGPQD1N-_oaLv5Gq-0PBGSc0iVY1@thread.tacv2",
+                    "body/messageBody": "<b>⚠️ GE DUMP not refreshed - source file too small</b><br>\nDumpFile.xlsx was under 400 KB, so DUMP_INPUT was NOT replaced and still holds the previous dump. Fines matching keeps working on slightly stale data - check the source export.<br>\n<b>Run:</b> @{workflow()?['run']?['name']}",
+                    "body/subject": "⚠️ GE DUMP skipped - source too small"
+                  },
+                  "authentication": "@parameters('$authentication')"
+                }
+              },
+              "Terminate_SourceTooSmall": {
+                "runAfter": {
+                  "Post_Teams_SourceTooSmall": [
+                    "Succeeded",
+                    "Failed",
+                    "Skipped",
+                    "TimedOut"
+                  ]
+                },
+                "metadata": {
+                  "operationMetadataId": "f64efcdf-154f-488b-9309-16a36edd4a0b"
+                },
+                "type": "Terminate",
+                "inputs": {
+                  "runStatus": "Failed",
+                  "runError": {
+                    "code": "SOURCE_TOO_SMALL",
+                    "message": "DumpFile.xlsx is smaller than 400000 bytes. DUMP_INPUT was not replaced and still holds the previous dump - fines matching is slightly stale until the source is fixed."
+                  }
+                }
+              }
+            }
+          },
+          "expression": {
+            "greater": [
+              "@int(outputs('Get_file_metadata_DumpFile')?['body/Size'])",
+              400000
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8599c07d-37ec-421f-ae03-1ebec7d41db2"
+          },
+          "type": "If"
+        },
+        "Initialize_varCorrelationId": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "dbe92875-af22-41e8-98c0-639c2c0d8ff2"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varCorrelationId",
+                "type": "string",
+                "value": "@{guid()}"
+              }
+            ]
+          }
+        },
+        "Initialize_variable": {
+          "runAfter": {
+            "Initialize_varCorrelationId": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "413ceaef-57a8-4a30-9f53-b9b4f0375cf9"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varStartTime",
+                "type": "string",
+                "value": "@{utcNow()}"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

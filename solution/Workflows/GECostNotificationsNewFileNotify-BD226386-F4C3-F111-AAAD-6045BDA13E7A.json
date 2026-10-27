@@ -1,0 +1,91 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_teams": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedteams_0404f"
+        },
+        "api": {
+          "name": "shared_teams"
+        }
+      },
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedsharepointonline_b37ee"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "When_a_file_is_created_or_modified_(properties_only)": {
+          "recurrence": {
+            "interval": 1,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "operationMetadataId": "ca83e902-7ad2-415d-9f5d-0e7feb2abb11"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetOnUpdatedFileItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "https://anheuserbuschinbev.sharepoint.com/sites/FleetEurope",
+              "table": "3c3a8887-944f-4378-b653-1c83c7e9febe",
+              "folderPath": "/Shared Documents/FLEET GERMANY/Fines/Fines_Payroll-Input/Cost notifications"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "conditions": []
+        }
+      },
+      "actions": {
+        "Post_message_in_a_chat_or_channel": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "95171c8b-1fde-45c5-9f5c-afa49204fe5d"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_teams",
+              "operationId": "PostMessageToConversation",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+            },
+            "parameters": {
+              "poster": "Flow bot",
+              "location": "Channel",
+              "body/recipient/groupId": "31e9a6c8-ccc8-474d-bb15-663ff00adfaf",
+              "body/recipient/channelId": "19:gfdAppE7WPSa5Bb8hHRazzdDkhgy0xs8csDox8307RQ1@thread.tacv2",
+              "body/messageBody": "Hi Fleet specialist, a new document uploaded to Cost notification folder, please act on it:<br>File: @{triggerOutputs()?['body/{FilenameWithExtension}']}<br>Path: <a href=\"@{triggerOutputs()?['body/{Link}']}\">Open file</a>"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

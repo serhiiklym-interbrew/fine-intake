@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ImportExportXml version="9.2.26092.157" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26092.157" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26092.00161">
+<ImportExportXml version="9.2.26094.160" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26094.160" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26094.00160">
   <SolutionManifest>
     <UniqueName>GEFineIntake</UniqueName>
     <LocalizedNames>
       <LocalizedName description="GE - Fine Intake" languagecode="1033" />
     </LocalizedNames>
     <Descriptions />
-    <Version>1.0.0.0</Version>
+    <Version>1.1.0.0</Version>
     <Managed>0</Managed>
     <Publisher>
       <UniqueName>PersonalDev</UniqueName>
@@ -78,8 +78,14 @@
       </Addresses>
     </Publisher>
     <RootComponents>
+      <RootComponent type="29" id="{24db571f-49d1-f111-a05a-70a8a5590acf}" behavior="0" />
+      <RootComponent type="29" id="{409fec7e-c6cb-f111-a05a-6045bd999818}" behavior="0" />
+      <RootComponent type="29" id="{7832d4d3-85cc-f111-a05a-00224886a844}" behavior="0" />
       <RootComponent type="29" id="{7a796b0d-f3c6-f111-aaad-3833c5c75c1d}" behavior="0" />
+      <RootComponent type="29" id="{bd226386-f4c3-f111-aaad-6045bda13e7a}" behavior="0" />
+      <RootComponent type="29" id="{dabc843d-02cf-f111-a05a-7ced8d956d28}" behavior="0" />
       <RootComponent type="29" id="{e346380d-a9c8-f111-aaad-6045bd94dde5}" behavior="0" />
+      <RootComponent type="29" id="{fafd81e1-4dc9-f111-aaad-6045bda13e7a}" behavior="0" />
     </RootComponents>
     <MissingDependencies>
       <MissingDependency>
@@ -89,6 +95,14 @@
       <MissingDependency>
         <Required type="401" displayName="GE Fine Extract Fields" solution="Active" id="{48ae0faa-5acc-413c-9098-ea368921bef1}" />
         <Dependent type="29" displayName="GE Fine Intake Fair Auto" id="{e346380d-a9c8-f111-aaad-6045bd94dde5}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="401" displayName="GE Fine Cost Notification Extract Fields" solution="Active" id="{866b1e5f-9707-4d15-97cc-8dc1285af159}" />
+        <Dependent type="29" displayName="GE Fine Intake Cost Notification Auto" id="{7832d4d3-85cc-f111-a05a-00224886a844}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="connectionreference" displayName="new_sharedexcelonlinebusiness_fd10e" solution="Active" id.connectionreferencelogicalname="new_sharedexcelonlinebusiness_fd10e" />
+        <Dependent type="29" displayName="GE Fine Intake EOP Sync Scheduled" id="{409fec7e-c6cb-f111-a05a-6045bd999818}" />
       </MissingDependency>
     </MissingDependencies>
   </SolutionManifest>

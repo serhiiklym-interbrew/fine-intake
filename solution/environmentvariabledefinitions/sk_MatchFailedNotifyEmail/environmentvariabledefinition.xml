@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="sk_MatchFailedNotifyEmail">
+  <defaultvalue>Fleet.Germany@ab-inbev.com</defaultvalue>
+  <displayname default="Match Failed Notify Email">
+    <label description="Match Failed Notify Email" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.0.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>
