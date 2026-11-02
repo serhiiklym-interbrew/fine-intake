@@ -5,19 +5,28 @@
  * unless its reference number already exists (dedup) — in which case no row is
  * written and the caller is told it was a duplicate.
  *
- * Called from the "GE_FineIntake_Normal_Auto" Power Automate flow via Run script.
+ * Called from the "GE_FineIntake_*_Auto" Power Automate flows via Run script
+ * (Normal / Fair / Cost Notification — all share this script).
  *
  * Parameters (fileName FIRST, per the house clone convention):
  *   fileName   : human file name as archived (flow-supplied).
- *   fineType   : "Normal" or "Fair" (derived from the source folder by the flow).
+ *   fineType   : "Normal" | "Fair" | "Cost Notification" (from the source folder).
  *   status     : "Passed" or "Check" ("Failed" rows are never written).
  *   fileLink   : SharePoint "Link to item" of the archived PDF (may be empty).
  *   folderPath : SharePoint link to the submission folder (may be empty).
- *   dataJson   : the GPT JSON string with the 7 extracted fields:
- *                VendorName, PlateNumber, Aktenzeichen, OffenceDate,
- *                LetterDate, Amount, AuthorityEmail.
+ *   dataJson   : the GPT JSON string. 8 recognized fields + 3 DueDate inputs:
+ *                VendorName, PlateNumber, Aktenzeichen, OffenceDate, Location,
+ *                LetterDate, Amount, AuthorityEmail,
+ *                StampDate, DeadlineDays, DueDateExplicit.
  *                (The JSON key stays "Aktenzeichen" — the document's language;
  *                 it maps to the ReferenceNumber column.)
+ *
+ * DueDate (col 7) is computed HERE, not by the LLM (date arithmetic in the LLM
+ * is unreliable). Rule:
+ *     base    = StampDate ?? LetterDate        (incoming-stamp date preferred,
+ *                                               it is closest to legal "Zugang")
+ *     DueDate = DueDateExplicit ?? (base + DeadlineDays)
+ * If nothing resolves, DueDate is left empty.
  *
  * Returns (read by the flow to decide the log entry):
  *   { inserted: true,  reason: "" }          -> a new row was appended.
@@ -26,27 +35,39 @@
  *   The file is archived by the flow regardless, so a duplicate is logged as
  *   Skipped (RowsInserted = 0), not Failed.
  *
- * Column order written (must match tblFines exactly — 26 columns):
- *   FileName, FineType, VendorName, PlateNumber, ReferenceNumber, OffenceDate,
- *   LetterDate, Amount, AuthorityEmail, Status, NormalizedReferenceNumber,
- *   ReviewNote, ProcessedAt, File, FolderPath,
- *   Personalnummer, EmployeeName, EmployeeEmail, EmployeeAddress,
- *   MailStatus, MatchNote, DateSent, RowId,
- *   ConfirmToken, ConfirmedDate, ConfirmedBy
+ * Column order written (must match tblFines exactly — 33 columns).
+ * NB: this grid follows the EXECUTED row[] array below (MailStatus at 18), which
+ * is the authoritative physical order — not an earlier header/handoff that had
+ * MailStatus at 26. The ConfirmedBy column was removed 2026-10-29 (it only ever
+ * duplicated EmployeeEmail, since the anonymous confirm link cannot verify who
+ * actually clicked), shifting every column after PaymentDate down by one:
+ *   0  PlateNumber        9  Status            18 MailStatus        27 NormalizedReferenceNumber
+ *   1  FineType          10  OCRPercent        19 LastNotifyStage   28 RowId
+ *   2  VendorName        11  AuthorityEmail    20 LastNotifyDate    29 ConfirmToken
+ *   3  ReferenceNumber   12  Personalnummer    21 DateSent          30 ProcessedAt
+ *   4  OffenceDate       13  EmployeeName      22 ConfirmedDate     31 File
+ *   5  Location          14  EmployeeEmail     23 PaymentDate       32 FolderPath
+ *   6  LetterDate        15  EmployeeAddress   24 MatchNote
+ *   7  DueDate           16  DriverSource      25 ReviewNote
+ *   8  Amount            17  VehicleFrom       26 FileName
  *
- *   Intake writes MailStatus = "Pending" for every row it appends (Passed and
- *   Check alike); the six send-state columns (Personalnummer, Employee*,
- *   MatchNote, DateSent) are left empty for the match/dispatch flow to fill.
- *   Intake also generates RowId — a unique text key the match/dispatch flow
- *   addresses this exact row by. FileName is not unique, ProcessedAt resolves
- *   only to the second, and Check rows carry no reference, so none of those is a
- *   safe key; RowId is "R" + Date.now() (real ms) + "-" + a random suffix.
+ *   Intake fills the recognized fields (cols 0-9 + AuthorityEmail),
+ *   NormalizedReferenceNumber, RowId, ProcessedAt, File, FolderPath, and seeds
+ *   MailStatus = "Pending" for every row (Passed and Check alike). All match /
+ *   notify / payment columns are left empty for the downstream flows:
+ *     - match flow:   Personalnummer, EmployeeName, EmployeeEmail,
+ *                     EmployeeAddress, DriverSource, VehicleFrom, MatchNote.
+ *     - notify flow:  LastNotifyStage, LastNotifyDate, DateSent.
+ *     - capture flow: ConfirmedDate, PaymentDate; the send flow stamps the
+ *                     one-time ConfirmToken nonce.
+ *   RowId is the unique text key the downstream flows address this exact row by
+ *   ("R" + Date.now() + "-" + random suffix): FileName is not unique, ProcessedAt
+ *   resolves only to the second, and Check rows carry no reference.
  *
- *   The three payment-confirmation columns (ConfirmToken, ConfirmedDate,
- *   ConfirmedBy) are likewise left empty here — the send flow stamps a one-time
- *   ConfirmToken (nonce) when it posts the driver's Teams card, and the capture
- *   flow fills ConfirmedDate/ConfirmedBy when the driver confirms. Intake never
- *   touches them beyond reserving the (Text-formatted) cells.
+ *   Location (col 5) is the violation location, pulled from dataJson (the 8th
+ *   recognized field) — written as text, needed by the Normal/CN letters.
+ *   OCRPercent (col 10) is reserved for a future OCR-recognition score; intake
+ *   leaves it empty for now (no format set).
  */
 
 interface WriteResult {
@@ -74,9 +95,13 @@ function main(
         PlateNumber?: string | null;
         Aktenzeichen?: string | null;
         OffenceDate?: string | null;
+        Location?: string | null;
         LetterDate?: string | null;
         Amount?: number | null;
         AuthorityEmail?: string | null;
+        StampDate?: string | null;
+        DeadlineDays?: number | string | null;
+        DueDateExplicit?: string | null;
     }
 
     let d: FineData = {};
@@ -113,6 +138,26 @@ function main(
         );
         const epoch = Date.UTC(1899, 11, 30);
         return (localMs - epoch) / 86400000;
+    }
+
+    // DueDate = DueDateExplicit, else (StampDate ?? LetterDate) + DeadlineDays.
+    // Returns an Excel serial, or "" when nothing resolves. Because an Excel date
+    // serial IS a day count, "base + N days" is just baseSerial + N.
+    function computeDueSerial(
+        explicitIso: string, stampIso: string, letterIso: string,
+        deadlineDays: number | string | null | undefined
+    ): number | string {
+        // 1) explicit calendar deadline wins
+        const exp = isoDateToSerial(explicitIso);
+        if (exp !== "") return exp;
+        // 2) base date + duration
+        const base = stampIso || letterIso;
+        const baseSerial = isoDateToSerial(base);
+        const days = Number(deadlineDays);
+        if (baseSerial !== "" && isFinite(days) && days > 0) {
+            return (baseSerial as number) + days;
+        }
+        return "";
     }
 
     // Canonicalize a German plate to "AREA-LL DDD" (e.g. HB-AG 454) — same rule
@@ -158,7 +203,8 @@ function main(
     // ---- dedup check ----------------------------------------------------------
     // Only when we actually have a reference. An empty Aktenzeichen means a
     // Check row (date/amount missing) — those must always be written, and would
-    // otherwise all collide on an empty key.
+    // otherwise all collide on an empty key. Column resolved by NAME, so the
+    // column reorder does not affect this.
     if (refNorm) {
         const normCol = table.getColumnByName("NormalizedReferenceNumber");
         const bodyRange = normCol.getRangeBetweenHeaderAndTotal();
@@ -174,13 +220,14 @@ function main(
 
     const offenceSerial = isoDateToSerial(txt(d.OffenceDate));
     const letterSerial = isoDateToSerial(txt(d.LetterDate));
+    const dueSerial = computeDueSerial(
+        txt(d.DueDateExplicit), txt(d.StampDate), txt(d.LetterDate), d.DeadlineDays
+    );
     const amountVal: number | string =
         (d.Amount === null || d.Amount === undefined) ? "" : d.Amount;
     const processedSerial = nowToSerial();
 
-    // Unique row key for the match/dispatch flow to address this exact row.
-    // Date.now() gives real milliseconds (nowToSerial() only resolves to the
-    // second), and the random suffix covers two rows written in the same ms.
+    // Unique row key for the downstream flows to address this exact row.
     const rowId = "R" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
 
     // Store the plate in the uniform "AREA-LL DDD" form, not the raw GPT text.
@@ -190,41 +237,47 @@ function main(
     // yielding "HB 4444 FLA") is unreliable — downgrade a Passed row to Check so
     // it still appears for the specialist to verify against the file, instead of
     // a wrong plate being trusted. The raw plate is kept in the row as a hint.
-    // ("Check" capitalised to match the tblFines Status convention.)
     let effectiveStatus = status;
     if (plate !== "" && !isPlausiblePlate(plate) &&
         effectiveStatus.toLowerCase() === "passed") {
         effectiveStatus = "Check";
     }
 
-    // ---- build the row (exact tblFines column order, 26 columns) --------------
+    // ---- build the row (exact tblFines column order, 33 columns) ---------------
     const row: (string | number)[] = [
-        txt(fileName),          // 0  FileName
+        plate,                  // 0  PlateNumber (canonicalized "AREA-LL DDD")
         txt(fineType),          // 1  FineType
         txt(d.VendorName),      // 2  VendorName
-        plate,                  // 3  PlateNumber (canonicalized "AREA-LL DDD")
-        refRaw,                 // 4  ReferenceNumber
-        offenceSerial,          // 5  OffenceDate
+        refRaw,                 // 3  ReferenceNumber
+        offenceSerial,          // 4  OffenceDate
+        txt(d.Location),        // 5  Location (violation location, from OCR)
         letterSerial,           // 6  LetterDate
-        amountVal,              // 7  Amount
-        txt(d.AuthorityEmail),  // 8  AuthorityEmail
+        dueSerial,              // 7  DueDate (computed)
+        amountVal,              // 8  Amount
         txt(effectiveStatus),   // 9  Status (Passed downgraded to Check on bad plate)
-        refNorm,                // 10 NormalizedReferenceNumber
-        "",                     // 11 ReviewNote (filled manually)
-        processedSerial,        // 12 ProcessedAt
-        "",                     // 13 File (hyperlink set below)
-        "",                     // 14 FolderPath (hyperlink set below)
-        "",                     // 15 Personalnummer (match flow)
-        "",                     // 16 EmployeeName (match flow)
-        "",                     // 17 EmployeeEmail (match flow)
-        "",                     // 18 EmployeeAddress (match flow)
-        "Pending",              // 19 MailStatus (intake seeds Pending)
-        "",                     // 20 MatchNote (match flow)
-        "",                     // 21 DateSent (dispatch flow)
-        rowId,                  // 22 RowId (unique key, text)
-        "",                     // 23 ConfirmToken (send flow stamps the nonce)
-        "",                     // 24 ConfirmedDate (capture flow fills on confirm)
-        ""                      // 25 ConfirmedBy (capture flow fills on confirm)
+        "",                     // 10 OCRPercent (reserved; empty for now)
+        txt(d.AuthorityEmail),  // 11 AuthorityEmail
+        "",                     // 12 Personalnummer   (match flow)
+        "",                     // 13 EmployeeName      (match flow)
+        "",                     // 14 EmployeeEmail     (match flow)
+        "",                     // 15 EmployeeAddress   (match flow)
+        "",                     // 16 DriverSource      (match flow: DUMP/Pool)
+        "",                     // 17 VehicleFrom       (match flow)
+        "Pending",              // 18 MailStatus (intake seeds Pending)
+        "",                     // 19 LastNotifyStage   (notify flow)
+        "",                     // 20 LastNotifyDate    (notify flow)
+        "",                     // 21 DateSent          (notify flow)
+        "",                     // 22 ConfirmedDate     (capture flow)
+        "",                     // 23 PaymentDate       (capture flow)
+        "",                     // 24 MatchNote         (match flow)
+        "",                     // 25 ReviewNote        (filled manually)
+        txt(fileName),          // 26 FileName
+        refNorm,                // 27 NormalizedReferenceNumber
+        rowId,                  // 28 RowId (unique key, text)
+        "",                     // 29 ConfirmToken (send flow stamps the nonce)
+        processedSerial,        // 30 ProcessedAt
+        "",                     // 31 File (hyperlink set below)
+        ""                      // 32 FolderPath (hyperlink set below)
     ];
 
     table.addRow(-1, row);
@@ -233,46 +286,40 @@ function main(
     const body = table.getRangeBetweenHeaderAndTotal();
     const newRow = body.getRow(body.getRowCount() - 1);
 
-    // Reference columns are identifiers, not numbers: force Text so an all-digit
-    // case number (e.g. 6014213508638) is not turned into 6.01421E+12 and a long
-    // one doesn't lose precision. Set the format FIRST, then re-write the value —
-    // after addRow the cell already holds a number, so it must be replaced.
-    newRow.getColumn(4).setNumberFormat("@");                 // ReferenceNumber
-    newRow.getColumn(4).setValue(refRaw);
-    newRow.getColumn(10).setNumberFormat("@");                // NormalizedReferenceNumber
-    newRow.getColumn(10).setValue(refNorm);
+    // Identifier columns -> Text, so an all-digit reference (e.g. 6014213508638)
+    // is not turned into 6.01421E+12 and a long one doesn't lose precision. Set
+    // the format FIRST, then re-write the value — after addRow the cell already
+    // holds a value, so it must be replaced.
+    newRow.getColumn(3).setNumberFormat("@");                 // ReferenceNumber
+    newRow.getColumn(3).setValue(refRaw);
+    newRow.getColumn(27).setNumberFormat("@");                // NormalizedReferenceNumber
+    newRow.getColumn(27).setValue(refNorm);
 
-    // Personalnummer is a text identifier too (leading zeros / long) — keep the
-    // column Text even though intake leaves it empty, so the match flow's later
-    // write can't be coerced to a number if the sheet is ever recreated.
-    newRow.getColumn(15).setNumberFormat("@");                // Personalnummer
-    newRow.getColumn(15).setValue("");
+    // Personalnummer / ConfirmToken are text identifiers the downstream flows
+    // write and compare as exact strings — keep the cells Text even though intake
+    // leaves them empty, so a later write isn't coerced to a number if the sheet
+    // is ever recreated.
+    newRow.getColumn(12).setNumberFormat("@");                // Personalnummer
+    newRow.getColumn(12).setValue("");
+    newRow.getColumn(28).setNumberFormat("@");                // RowId
+    newRow.getColumn(28).setValue(rowId);
+    newRow.getColumn(29).setNumberFormat("@");                // ConfirmToken
+    newRow.getColumn(29).setValue("");
 
-    // RowId is an identifier, not a number — keep the column Text so the key the
-    // match flow searches by always compares as the exact string written here.
-    newRow.getColumn(22).setNumberFormat("@");                // RowId
-    newRow.getColumn(22).setValue(rowId);
-
-    // ConfirmToken is a GUID nonce the capture flow compares as an exact string,
-    // and ConfirmedBy is an email/name — keep both columns Text even though intake
-    // leaves them empty, so the send/capture flow's later write isn't coerced to a
-    // number if the sheet is ever recreated. ConfirmedDate stays unformatted here;
-    // the capture flow sets its dd.mm.yyyy hh:mm format when it writes the value.
-    newRow.getColumn(23).setNumberFormat("@");                // ConfirmToken
-    newRow.getColumn(23).setValue("");
-    newRow.getColumn(25).setNumberFormat("@");                // ConfirmedBy
-    newRow.getColumn(25).setValue("");
-
-    newRow.getColumn(5).setNumberFormat("dd.mm.yyyy");        // OffenceDate
+    // Date / number formats on the columns intake actually fills. The date cells
+    // left empty here (LastNotifyDate, DateSent, ConfirmedDate, PaymentDate) stay
+    // unformatted — each downstream flow sets its own format when it writes.
+    newRow.getColumn(4).setNumberFormat("dd.mm.yyyy");        // OffenceDate
     newRow.getColumn(6).setNumberFormat("dd.mm.yyyy");        // LetterDate
-    newRow.getColumn(7).setNumberFormat("0.00");              // Amount
-    newRow.getColumn(12).setNumberFormat("dd.mm.yyyy hh:mm"); // ProcessedAt
+    newRow.getColumn(7).setNumberFormat("dd.mm.yyyy");        // DueDate
+    newRow.getColumn(8).setNumberFormat("0.00");              // Amount
+    newRow.getColumn(30).setNumberFormat("dd.mm.yyyy hh:mm"); // ProcessedAt
 
     if (fileLink) {
-        newRow.getColumn(13).setHyperlink({ address: fileLink, textToDisplay: "Open" });
+        newRow.getColumn(31).setHyperlink({ address: fileLink, textToDisplay: "Open" });
     }
     if (folderPath) {
-        newRow.getColumn(14).setHyperlink({ address: folderPath, textToDisplay: "Open folder" });
+        newRow.getColumn(32).setHyperlink({ address: folderPath, textToDisplay: "Open folder" });
     }
 
     return { inserted: true, reason: "" };

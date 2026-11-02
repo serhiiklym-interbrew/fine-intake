@@ -46,7 +46,7 @@
             "frequency": "Week",
             "interval": 1,
             "timeZone": "W. Europe Standard Time",
-            "startTime": "2026-10-26T08:00:00Z",
+            "startTime": "2026-10-26T07:00:00Z",
             "schedule": {
               "weekDays": [
                 "Monday",
@@ -808,8 +808,8 @@
                         },
                         "parameters": {
                           "emailMessage/To": "@parameters('Match Failed Notify Email (sk_MatchFailedNotifyEmail)')",
-                          "emailMessage/Subject": "Test",
-                          "emailMessage/Body": "<p>test</p>",
+                          "emailMessage/Subject": "@concat('[GE Fines] Match failed — ', items('For_each_Pending_Fine')?['PlateNumber'], ' / ', items('For_each_Pending_Fine')?['ReferenceNumber'])",
+                          "emailMessage/Body": "<div style=\"font-family:Segoe UI,Arial,sans-serif;max-width:640px;margin:0 auto;border:1px solid #d0d0d0;\">\n  <div style=\"background:#153643;color:#ffffff;padding:16px 24px;font-size:18px;font-weight:600;\">\n    Fleet Germany — Fine match failed\n  </div>\n  <div style=\"height:4px;background:#e5b611;\"></div>\n  <div style=\"padding:20px 24px;color:#222222;font-size:14px;line-height:1.5;\">\n    <p>A recognized fine could not be matched to a driver. Manual review is needed.</p>\n    <p style=\"background:#fbf3d0;border-left:3px solid #e5b611;padding:10px 12px;margin:16px 0;\">\n      <strong>Reason:</strong> @{variables('varMatchNote')}\n    </p>\n    <table style=\"border-collapse:collapse;width:100%;font-size:14px;\">\n      <tr><td style=\"padding:6px 8px;color:#666;width:180px;\">Plate number</td><td style=\"padding:6px 8px;font-weight:600;\">@{items('For_each_Pending_Fine')?['PlateNumber']}</td></tr>\n      <tr><td style=\"padding:6px 8px;color:#666;\">Fine type</td><td style=\"padding:6px 8px;\">@{items('For_each_Pending_Fine')?['FineType']}</td></tr>\n      <tr><td style=\"padding:6px 8px;color:#666;\">Reference number</td><td style=\"padding:6px 8px;\">@{items('For_each_Pending_Fine')?['ReferenceNumber']}</td></tr>\n      <tr><td style=\"padding:6px 8px;color:#666;\">Vendor</td><td style=\"padding:6px 8px;\">@{items('For_each_Pending_Fine')?['VendorName']}</td></tr>\n      <tr><td style=\"padding:6px 8px;color:#666;\">Offence date</td><td style=\"padding:6px 8px;\">@{if(empty(items('For_each_Pending_Fine')?['OffenceDate']), '', formatDateTime(addDays('1899-12-30', int(items('For_each_Pending_Fine')?['OffenceDate'])), 'dd.MM.yyyy'))}</td></tr>\n      <tr><td style=\"padding:6px 8px;color:#666;\">Amount</td><td style=\"padding:6px 8px;\">@{if(empty(items('For_each_Pending_Fine')?['Amount']), '', concat(formatNumber(float(items('For_each_Pending_Fine')?['Amount']), 'N2', 'de-DE'), ' €'))}</td></tr>\n    </table>\n    <p style=\"margin:20px 0 8px;color:#666;\">\n      File in SharePoint (<strong>@{items('For_each_Pending_Fine')?['FineType']}</strong> folder &rarr; Processed):\n      <strong>@{items('For_each_Pending_Fine')?['FileName']}</strong>\n    </p>\n  </div>\n  <div style=\"background:#f2f2f2;color:#888;padding:12px 24px;font-size:12px;\">\n    Automated message from GE Fine Intake. Do not reply to this e-mail.\n  </div>\n</div>",
                           "emailMessage/Importance": "Normal"
                         },
                         "authentication": "@parameters('$authentication')"

@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="sk_SecurityManagerEmail">
+  <defaultvalue>Andree.Stuhr@ab-inbev.com</defaultvalue>
+  <displayname default="GE Fine Security Manager Email">
+    <label description="GE Fine Security Manager Email" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.1.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>
