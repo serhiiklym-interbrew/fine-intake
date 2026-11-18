@@ -22,6 +22,13 @@
         "$authentication": {
           "defaultValue": {},
           "type": "SecureObject"
+        },
+        "GE Fine Fleet Team Email (sk_GEFineFleetTeamEmail)": {
+          "defaultValue": "serhii.klym@ab-inbev.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "sk_GEFineFleetTeamEmail"
+          }
         }
       },
       "triggers": {
@@ -39,7 +46,11 @@
       },
       "actions": {
         "Compose_rowId": {
-          "runAfter": {},
+          "runAfter": {
+            "Initialize_varFleetSubject": [
+              "Succeeded"
+            ]
+          },
           "metadata": {
             "operationMetadataId": "a864078a-8c7a-466e-b108-dc1b465b3d01"
           },
@@ -72,7 +83,7 @@
         },
         "Run_script_GetForConfirm": {
           "runAfter": {
-            "Compose_paymentDate": [
+            "Compose_FleetEmail": [
               "Succeeded"
             ]
           },
@@ -92,7 +103,7 @@
               "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
               "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
               "file": "01OW33XMJQA7LUSF62TREJCJMIBVHNB7ON",
-              "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YK3KKG6T7DHPNAJRUIVWSNLAKZE",
+              "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YONZCD2EVMQ7NG3XNLFPL7ZYON3",
               "ScriptParameters/rowId": "@outputs('Compose_rowId')",
               "ScriptParameters/confirmToken": "@outputs('Compose_token')"
             },
@@ -113,7 +124,7 @@
                         "operationMetadataId": "f9c5ebc9-f942-4793-abae-6e5a61e7e940"
                       },
                       "type": "Compose",
-                      "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Zahlung bestätigen — GE Fleet Bußgeld</title>\n<style>\n  body{margin:0;background:#f3f4f6;font-family:Segoe UI,Arial,sans-serif;color:#1f2933;}\n  .wrap{max-width:560px;margin:24px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);}\n  .head{background:#153643;color:#fff;padding:18px 24px;}\n  .head h1{margin:0;font-size:18px;font-weight:600;}\n  .bar{height:4px;background:#e5b611;}\n  .body{padding:24px;}\n  .intro{margin:0 0 18px;font-size:14px;line-height:1.5;}\n  table.det{width:100%;border-collapse:collapse;margin:0 0 20px;font-size:14px;}\n  table.det td{padding:7px 10px;border-bottom:1px solid #eceff1;vertical-align:top;}\n  table.det td.k{color:#5a6b78;width:46%;}\n  table.det td.v{font-weight:600;}\n  label.lbl{display:block;font-size:14px;font-weight:600;margin:4px 0 6px;}\n  input[type=date]{font-size:15px;padding:9px 10px;border:1px solid #c4ccd2;border-radius:6px;width:100%;box-sizing:border-box;}\n  button{margin-top:18px;background:#153643;color:#fff;border:0;border-radius:6px;padding:12px 20px;font-size:15px;font-weight:600;cursor:pointer;width:100%;}\n  button:hover{background:#214a5c;}\n  .foot{padding:14px 24px;font-size:12px;color:#8a97a0;border-top:1px solid #eceff1;}\n  .nojs{background:#fdecea;color:#8a1c12;padding:12px 24px;font-size:13px;}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n  <div class=\"head\"><h1>Bestätigen Sie die Zahlung Ihres Bußgeldes</h1></div>\n  <div class=\"bar\"></div>\n  <noscript><div class=\"nojs\">Bitte aktivieren Sie JavaScript in Ihrem Browser, um diese Bestätigung abzusenden.</div></noscript>\n  <div class=\"body\">\n    <p class=\"intro\">Bitte wählen Sie unten das Datum aus, an dem Sie das Bußgeld bezahlt haben, und klicken Sie anschließend auf <b>Zahlung bestätigen</b>.</p>\n    <table class=\"det\">\n      <tr><td class=\"k\">Dokument</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['fineType']}</td></tr>\n      <tr><td class=\"k\">Kennzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['plateNumber']}</td></tr>\n      <tr><td class=\"k\">Aktenzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['referenceNumber']}</td></tr>\n      <tr><td class=\"k\">Aussteller</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['vendorName']}</td></tr>\n      <tr><td class=\"k\">Tatdatum</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['offenceDateText']}</td></tr>\n      <tr><td class=\"k\">Zahlungsfrist</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['dueDateText']}</td></tr>\n      <tr><td class=\"k\">Betrag</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['amountText']}</td></tr>\n    </table>\n    <form id=\"confirmForm\" method=\"get\" action=\"\">\n      <label class=\"lbl\" for=\"paymentDate\">Zahlungsdatum</label>\n      <input type=\"date\" id=\"paymentDate\" name=\"paymentDate\" required max=\"@{formatDateTime(utcNow(),'yyyy-MM-dd')}\">\n      <button type=\"submit\">Zahlung bestätigen</button>\n    </form>\n  </div>\n  <div class=\"foot\">Mit freundlichen Grüßen, Fleet Team Germany &middot; Automatische Seite, bitte nicht antworten.</div>\n</div>\n<script>\n(function(){\n  var f=document.getElementById('confirmForm');\n  if(!f) return;\n  var p=new URLSearchParams(window.location.search);\n  p.forEach(function(v,k){\n    if(k.toLowerCase()==='paymentdate') return;\n    var inp=document.createElement('input');\n    inp.type='hidden'; inp.name=k; inp.value=v;\n    f.appendChild(inp);\n  });\n})();\n</script>\n</body>\n</html>"
+                      "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Zahlung bestätigen — GE Fleet Bußgeld</title>\n<style>\n  body{margin:0;background:#f3f4f6;font-family:Segoe UI,Arial,sans-serif;color:#1f2933;}\n  .wrap{max-width:560px;margin:24px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);}\n  .head{background:#000000;color:#fff;padding:18px 24px;}\n  .head h1{margin:0;font-size:18px;font-weight:600;}\n  .bar{height:4px;background:#D1A33C;}\n  .body{padding:24px;}\n  .intro{margin:0 0 18px;font-size:14px;line-height:1.5;}\n  table.det{width:100%;border-collapse:collapse;margin:0 0 20px;font-size:14px;}\n  table.det td{padding:7px 10px;border-bottom:1px solid #eceff1;vertical-align:top;}\n  table.det td.k{color:#5a6b78;width:46%;}\n  table.det td.v{font-weight:600;}\n  label.lbl{display:block;font-size:14px;font-weight:600;margin:4px 0 6px;}\n  input[type=date]{font-size:15px;padding:9px 10px;border:1px solid #c4ccd2;border-radius:6px;width:100%;box-sizing:border-box;}\n  button{margin-top:18px;background:#000000;color:#fff;border:0;border-radius:6px;padding:12px 20px;font-size:15px;font-weight:600;cursor:pointer;width:100%;}\n  button:hover{background:#214a5c;}\n  .foot{padding:14px 24px;font-size:12px;color:#8a97a0;border-top:1px solid #eceff1;}\n  .nojs{background:#fdecea;color:#8a1c12;padding:12px 24px;font-size:13px;}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n  <div class=\"head\"><h1>Bestätigen Sie die Zahlung Ihres Bußgeldes</h1></div>\n  <div class=\"bar\"></div>\n  <noscript><div class=\"nojs\">Bitte aktivieren Sie JavaScript in Ihrem Browser, um diese Bestätigung abzusenden.</div></noscript>\n  <div class=\"body\">\n    <p class=\"intro\">Bitte wählen Sie unten das Datum aus, an dem Sie das Bußgeld bezahlt haben, und klicken Sie anschließend auf <b>Zahlung bestätigen</b>.</p>\n    <table class=\"det\">\n      <tr><td class=\"k\">Dokument</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['fineType']}</td></tr>\n      <tr><td class=\"k\">Kennzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['plateNumber']}</td></tr>\n      <tr><td class=\"k\">Aktenzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['referenceNumber']}</td></tr>\n      @{if(empty(body('Run_script_GetForConfirm')?['result']?['vendorName']), '', concat('<tr><td class=\"k\">Aussteller</td><td class=\"v\">', body('Run_script_GetForConfirm')?['result']?['vendorName'], '</td></tr>'))}\n      @{if(empty(body('Run_script_GetForConfirm')?['result']?['offenceDateText']), '', concat('<tr><td class=\"k\">Tatdatum</td><td class=\"v\">', body('Run_script_GetForConfirm')?['result']?['offenceDateText'], '</td></tr>'))}\n      @{if(empty(body('Run_script_GetForConfirm')?['result']?['dueDateText']), '', concat('<tr><td class=\"k\">Zahlungsfrist</td><td class=\"v\">', body('Run_script_GetForConfirm')?['result']?['dueDateText'], '</td></tr>'))}\n      @{if(empty(body('Run_script_GetForConfirm')?['result']?['amountText']), '', concat('<tr><td class=\"k\">Betrag</td><td class=\"v\">', body('Run_script_GetForConfirm')?['result']?['amountText'], '</td></tr>'))}\n    </table>\n    <form id=\"confirmForm\" method=\"get\" action=\"\">\n      <label class=\"lbl\" for=\"paymentDate\">Zahlungsdatum</label>\n      <input type=\"date\" id=\"paymentDate\" name=\"paymentDate\" required max=\"@{formatDateTime(utcNow(),'yyyy-MM-dd')}\">\n      <button type=\"submit\">Zahlung bestätigen</button>\n    </form>\n  </div>\n  <div class=\"foot\">Mit freundlichen Grüßen, Fleet Team Germany &middot; Automatische Seite, bitte nicht antworten.</div>\n</div>\n<script>\n(function(){\n  var f=document.getElementById('confirmForm');\n  if(!f) return;\n  var p=new URLSearchParams(window.location.search);\n  p.forEach(function(v,k){\n    if(k.toLowerCase()==='paymentdate') return;\n    var inp=document.createElement('input');\n    inp.type='hidden'; inp.name=k; inp.value=v;\n    f.appendChild(inp);\n  });\n})();\n</script>\n</body>\n</html>"
                     },
                     "Response_Form_Ready": {
                       "runAfter": {
@@ -145,7 +156,7 @@
                         "operationMetadataId": "78ad0c8c-4eb1-4b23-bda1-b97302b6b293"
                       },
                       "type": "Compose",
-                      "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Bereits bestätigt — GE Fleet Bußgeld</title>\n<style>\n  body{margin:0;background:#f3f4f6;font-family:Segoe UI,Arial,sans-serif;color:#1f2933;}\n  .wrap{max-width:560px;margin:24px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);}\n  .head{background:#153643;color:#fff;padding:18px 24px;}\n  .head h1{margin:0;font-size:18px;font-weight:600;}\n  .bar{height:4px;background:#e5b611;}\n  .body{padding:24px;}\n  .note{display:flex;align-items:center;gap:12px;background:#e8f5e9;border:1px solid #c6e8c9;border-radius:6px;padding:14px 16px;margin:0 0 20px;}\n  .note .tick{width:28px;height:28px;flex:0 0 28px;background:#2e7d32;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-size:16px;font-weight:700;}\n  .note .txt{font-size:14px;line-height:1.4;}\n  table.det{width:100%;border-collapse:collapse;margin:0;font-size:14px;}\n  table.det td{padding:7px 10px;border-bottom:1px solid #eceff1;vertical-align:top;}\n  table.det td.k{color:#5a6b78;width:46%;}\n  table.det td.v{font-weight:600;}\n  .foot{padding:14px 24px;font-size:12px;color:#8a97a0;border-top:1px solid #eceff1;}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n  <div class=\"head\"><h1>Zahlung bereits bestätigt</h1></div>\n  <div class=\"bar\"></div>\n  <div class=\"body\">\n    <div class=\"note\">\n      <div class=\"tick\">&#10003;</div>\n      <div class=\"txt\">Dieses Bußgeld wurde bereits als bezahlt bestätigt. Es ist keine weitere Aktion erforderlich.</div>\n    </div>\n    <table class=\"det\">\n      <tr><td class=\"k\">Dokument</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['fineType']}</td></tr>\n      <tr><td class=\"k\">Kennzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['plateNumber']}</td></tr>\n      <tr><td class=\"k\">Aktenzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['referenceNumber']}</td></tr>\n      <tr><td class=\"k\">Betrag</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['amountText']}</td></tr>\n    </table>\n  </div>\n  <div class=\"foot\">Mit freundlichen Grüßen, Fleet Team Germany &middot; Automatische Seite, bitte nicht antworten. Sie können dieses Fenster schließen.</div>\n</div>\n</body>\n</html>"
+                      "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Bereits bestätigt — GE Fleet Bußgeld</title>\n<style>\n  body{margin:0;background:#f3f4f6;font-family:Segoe UI,Arial,sans-serif;color:#1f2933;}\n  .wrap{max-width:560px;margin:24px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);}\n  .head{background:#000000;color:#fff;padding:18px 24px;}\n  .head h1{margin:0;font-size:18px;font-weight:600;}\n  .bar{height:4px;background:#D1A33C;}\n  .body{padding:24px;}\n  .note{display:flex;align-items:center;gap:12px;background:#e8f5e9;border:1px solid #c6e8c9;border-radius:6px;padding:14px 16px;margin:0 0 20px;}\n  .note .tick{width:28px;height:28px;flex:0 0 28px;background:#2e7d32;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-size:16px;font-weight:700;}\n  .note .txt{font-size:14px;line-height:1.4;}\n  table.det{width:100%;border-collapse:collapse;margin:0;font-size:14px;}\n  table.det td{padding:7px 10px;border-bottom:1px solid #eceff1;vertical-align:top;}\n  table.det td.k{color:#5a6b78;width:46%;}\n  table.det td.v{font-weight:600;}\n  .foot{padding:14px 24px;font-size:12px;color:#8a97a0;border-top:1px solid #eceff1;}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n  <div class=\"head\"><h1>Zahlung bereits bestätigt</h1></div>\n  <div class=\"bar\"></div>\n  <div class=\"body\">\n    <div class=\"note\">\n      <div class=\"tick\">&#10003;</div>\n      <div class=\"txt\">Dieses Bußgeld wurde bereits als bezahlt bestätigt. Es ist keine weitere Aktion erforderlich.</div>\n    </div>\n    <table class=\"det\">\n      <tr><td class=\"k\">Dokument</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['fineType']}</td></tr>\n      <tr><td class=\"k\">Kennzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['plateNumber']}</td></tr>\n      <tr><td class=\"k\">Aktenzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['referenceNumber']}</td></tr>\n      @{if(empty(body('Run_script_GetForConfirm')?['result']?['amountText']), '', concat('<tr><td class=\"k\">Betrag</td><td class=\"v\">', body('Run_script_GetForConfirm')?['result']?['amountText'], '</td></tr>'))}\n    </table>\n  </div>\n  <div class=\"foot\">Mit freundlichen Grüßen, Fleet Team Germany &middot; Automatische Seite, bitte nicht antworten. Sie können dieses Fenster schließen.</div>\n</div>\n</body>\n</html>"
                     },
                     "Response_Form_Already": {
                       "runAfter": {
@@ -177,7 +188,7 @@
                       "operationMetadataId": "f209e64b-3f03-4fcf-b48a-5fd56aa8edcd"
                     },
                     "type": "Compose",
-                    "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Link nicht verfügbar — GE Fleet Bußgeld</title>\n<style>\n  body{margin:0;background:#f3f4f6;font-family:Segoe UI,Arial,sans-serif;color:#1f2933;}\n  .wrap{max-width:560px;margin:24px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);}\n  .head{background:#153643;color:#fff;padding:18px 24px;}\n  .head h1{margin:0;font-size:18px;font-weight:600;}\n  .bar{height:4px;background:#e5b611;}\n  .body{padding:24px;}\n  .warn{background:#fdecea;border:1px solid #f5c6c0;border-radius:6px;padding:14px 16px;margin:0;font-size:14px;line-height:1.5;color:#8a1c12;}\n  .foot{padding:14px 24px;font-size:12px;color:#8a97a0;border-top:1px solid #eceff1;}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n  <div class=\"head\"><h1>Dieser Link ist nicht verfügbar</h1></div>\n  <div class=\"bar\"></div>\n  <div class=\"body\">\n    <div class=\"warn\">Dieser Bestätigungslink kann nicht verwendet werden. Er ist möglicherweise ungültig, abgelaufen, oder für dieses Bußgeld steht derzeit keine Zahlungsbestätigung aus.</div>\n  </div>\n  <div class=\"foot\">Mit freundlichen Grüßen, Fleet Team Germany &middot; Automatische Seite, bitte nicht antworten.</div>\n</div>\n</body>\n</html>"
+                    "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Link nicht verfügbar — GE Fleet Bußgeld</title>\n<style>\n  body{margin:0;background:#f3f4f6;font-family:Segoe UI,Arial,sans-serif;color:#1f2933;}\n  .wrap{max-width:560px;margin:24px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);}\n  .head{background:#000000;color:#fff;padding:18px 24px;}\n  .head h1{margin:0;font-size:18px;font-weight:600;}\n  .bar{height:4px;background:#D1A33C;}\n  .body{padding:24px;}\n  .warn{background:#fdecea;border:1px solid #f5c6c0;border-radius:6px;padding:14px 16px;margin:0;font-size:14px;line-height:1.5;color:#8a1c12;}\n  .foot{padding:14px 24px;font-size:12px;color:#8a97a0;border-top:1px solid #eceff1;}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n  <div class=\"head\"><h1>Dieser Link ist nicht verfügbar</h1></div>\n  <div class=\"bar\"></div>\n  <div class=\"body\">\n    <div class=\"warn\">Dieser Bestätigungslink kann nicht verwendet werden. Er ist möglicherweise ungültig, abgelaufen, oder für dieses Bußgeld steht derzeit keine Zahlungsbestätigung aus.</div>\n  </div>\n  <div class=\"foot\">Mit freundlichen Grüßen, Fleet Team Germany &middot; Automatische Seite, bitte nicht antworten.</div>\n</div>\n</body>\n</html>"
                   },
                   "Response_Form_Notice": {
                     "runAfter": {
@@ -250,14 +261,6 @@
                   "Case_recorded": {
                     "case": "recorded",
                     "actions": {
-                      "Compose_HtmlResult_OK": {
-                        "runAfter": {},
-                        "metadata": {
-                          "operationMetadataId": "16c57b78-aafe-4b49-a690-196f115dd8cc"
-                        },
-                        "type": "Compose",
-                        "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Zahlung bestätigt — GE Fleet Bußgeld</title>\n<style>\n  body{margin:0;background:#f3f4f6;font-family:Segoe UI,Arial,sans-serif;color:#1f2933;}\n  .wrap{max-width:560px;margin:24px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);}\n  .head{background:#153643;color:#fff;padding:18px 24px;}\n  .head h1{margin:0;font-size:18px;font-weight:600;}\n  .bar{height:4px;background:#e5b611;}\n  .body{padding:24px;}\n  .ok{display:flex;align-items:center;gap:12px;background:#e8f5e9;border:1px solid #c6e8c9;border-radius:6px;padding:14px 16px;margin:0 0 20px;}\n  .ok .tick{width:28px;height:28px;flex:0 0 28px;background:#2e7d32;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-size:16px;font-weight:700;}\n  .ok .txt{font-size:14px;line-height:1.4;}\n  .ok .txt b{display:block;font-size:15px;}\n  table.det{width:100%;border-collapse:collapse;margin:0;font-size:14px;}\n  table.det td{padding:7px 10px;border-bottom:1px solid #eceff1;vertical-align:top;}\n  table.det td.k{color:#5a6b78;width:46%;}\n  table.det td.v{font-weight:600;}\n  .foot{padding:14px 24px;font-size:12px;color:#8a97a0;border-top:1px solid #eceff1;}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n  <div class=\"head\"><h1>Zahlung bestätigt</h1></div>\n  <div class=\"bar\"></div>\n  <div class=\"body\">\n    <div class=\"ok\">\n      <div class=\"tick\">&#10003;</div>\n      <div class=\"txt\"><b>Vielen Dank &mdash; Ihre Zahlung wurde erfasst.</b>Zahlungsdatum: @{body('Run_script_ConfirmPayment')?['result']?['paymentDateText']}</div>\n    </div>\n    <table class=\"det\">\n      <tr><td class=\"k\">Dokument</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['fineType']}</td></tr>\n      <tr><td class=\"k\">Kennzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['plateNumber']}</td></tr>\n      <tr><td class=\"k\">Aktenzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['referenceNumber']}</td></tr>\n      <tr><td class=\"k\">Betrag</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['amountText']}</td></tr>\n    </table>\n  </div>\n  <div class=\"foot\">Mit freundlichen Grüßen, Fleet Team Germany &middot; Automatische Seite, bitte nicht antworten. Sie können dieses Fenster schließen.</div>\n</div>\n</body>\n</html>"
-                      },
                       "Response_Result_OK": {
                         "runAfter": {
                           "Compose_HtmlResult_OK": [
@@ -276,6 +279,26 @@
                           },
                           "body": "@outputs('Compose_HtmlResult_OK')"
                         }
+                      },
+                      "Compose_MailtoHref": {
+                        "runAfter": {},
+                        "metadata": {
+                          "operationMetadataId": "c93b86c5-fb35-4b19-8621-d9b60170fc8a"
+                        },
+                        "type": "Compose",
+                        "inputs": "@concat(\r\n  'mailto:', outputs('Compose_FleetEmail'),\r\n  '?subject=', encodeUriComponent(outputs('Compose_subject')),\r\n  '&body=', encodeUriComponent(concat(\r\n     'Kennzeichen: ', body('Run_script_GetForConfirm')?['result']?['plateNumber'], decodeUriComponent('%0D%0A'),\r\n     'Aktenzeichen: ', body('Run_script_GetForConfirm')?['result']?['referenceNumber'], decodeUriComponent('%0D%0A'),\r\n     if(empty(body('Run_script_GetForConfirm')?['result']?['amountText']), '', concat('Betrag: ', body('Run_script_GetForConfirm')?['result']?['amountText'], decodeUriComponent('%0D%0A'))),\r\n     if(empty(body('Run_script_GetForConfirm')?['result']?['offenceDateText']), '', concat('Tatdatum: ', body('Run_script_GetForConfirm')?['result']?['offenceDateText'], decodeUriComponent('%0D%0A'))),\r\n     'Zahldatum: ', body('Run_script_ConfirmPayment')?['result']?['paymentDateText']\r\n  ))\r\n)"
+                      },
+                      "Compose_HtmlResult_OK": {
+                        "runAfter": {
+                          "Compose_MailtoHref": [
+                            "Succeeded"
+                          ]
+                        },
+                        "metadata": {
+                          "operationMetadataId": "16c57b78-aafe-4b49-a690-196f115dd8cc"
+                        },
+                        "type": "Compose",
+                        "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Zahlung bestätigt — GE Fleet Bußgeld</title>\n<style>\n  body{margin:0;background:#f3f4f6;font-family:Segoe UI,Arial,sans-serif;color:#1f2933;}\n  .wrap{max-width:560px;margin:24px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);}\n  .head{background:#000000;color:#fff;padding:18px 24px;}\n  .head h1{margin:0;font-size:18px;font-weight:600;}\n  .bar{height:4px;background:#D1A33C;}\n  .body{padding:24px;}\n  .ok{display:flex;align-items:center;gap:12px;background:#e8f5e9;border:1px solid #c6e8c9;border-radius:6px;padding:14px 16px;margin:0 0 20px;}\n  .ok .tick{width:28px;height:28px;flex:0 0 28px;background:#2e7d32;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-size:16px;font-weight:700;}\n  .ok .txt{font-size:14px;line-height:1.4;}\n  .ok .txt b{display:block;font-size:15px;}\n  table.det{width:100%;border-collapse:collapse;margin:0;font-size:14px;}\n  table.det td{padding:7px 10px;border-bottom:1px solid #eceff1;vertical-align:top;}\n  table.det td.k{color:#5a6b78;width:46%;}\n  table.det td.v{font-weight:600;}\n  .cta{margin-top:22px;text-align:center;}\n  .cta a{display:inline-block;background:#000000;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:15px;}\n  .cta .hint{margin-top:10px;font-size:12px;color:#8a97a0;line-height:1.4;}\n  .foot{padding:14px 24px;font-size:12px;color:#8a97a0;border-top:1px solid #eceff1;}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n  <div class=\"head\"><h1>Zahlung bestätigt</h1></div>\n  <div class=\"bar\"></div>\n  <div class=\"body\">\n    <div class=\"ok\">\n      <div class=\"tick\">&#10003;</div>\n      <div class=\"txt\"><b>Vielen Dank &mdash; Ihre Zahlung wurde erfasst.</b>Zahlungsdatum: @{body('Run_script_ConfirmPayment')?['result']?['paymentDateText']}</div>\n    </div>\n    <table class=\"det\">\n      <tr><td class=\"k\">Dokument</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['fineType']}</td></tr>\n      <tr><td class=\"k\">Kennzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['plateNumber']}</td></tr>\n      <tr><td class=\"k\">Aktenzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['referenceNumber']}</td></tr>\n      @{if(empty(body('Run_script_GetForConfirm')?['result']?['amountText']), '', concat('<tr><td class=\"k\">Betrag</td><td class=\"v\">', body('Run_script_GetForConfirm')?['result']?['amountText'], '</td></tr>'))}\n    </table>\n    <div class=\"cta\">\n      <a href=\"@{outputs('Compose_MailtoHref')}\">Zahlung an das Fleet-Team melden</a>\n      <div class=\"hint\">Bitte senden Sie die vorbereitete E-Mail ab, um die Meldung abzuschließen.</div>\n    </div>\n  </div>\n  <div class=\"foot\">Mit freundlichen Grüßen, Fleet Team Germany &middot; Automatische Seite, bitte nicht antworten. Sie können dieses Fenster schließen.</div>\n</div>\n</body>\n</html>"
                       }
                     }
                   },
@@ -288,7 +311,7 @@
                           "operationMetadataId": "9a561f79-c53a-4411-b36d-6b40c86c1222"
                         },
                         "type": "Compose",
-                        "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Bereits bestätigt — GE Fleet Bußgeld</title>\n<style>\n  body{margin:0;background:#f3f4f6;font-family:Segoe UI,Arial,sans-serif;color:#1f2933;}\n  .wrap{max-width:560px;margin:24px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);}\n  .head{background:#153643;color:#fff;padding:18px 24px;}\n  .head h1{margin:0;font-size:18px;font-weight:600;}\n  .bar{height:4px;background:#e5b611;}\n  .body{padding:24px;}\n  .note{display:flex;align-items:center;gap:12px;background:#e8f5e9;border:1px solid #c6e8c9;border-radius:6px;padding:14px 16px;margin:0 0 20px;}\n  .note .tick{width:28px;height:28px;flex:0 0 28px;background:#2e7d32;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-size:16px;font-weight:700;}\n  .note .txt{font-size:14px;line-height:1.4;}\n  table.det{width:100%;border-collapse:collapse;margin:0;font-size:14px;}\n  table.det td{padding:7px 10px;border-bottom:1px solid #eceff1;vertical-align:top;}\n  table.det td.k{color:#5a6b78;width:46%;}\n  table.det td.v{font-weight:600;}\n  .foot{padding:14px 24px;font-size:12px;color:#8a97a0;border-top:1px solid #eceff1;}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n  <div class=\"head\"><h1>Zahlung bereits bestätigt</h1></div>\n  <div class=\"bar\"></div>\n  <div class=\"body\">\n    <div class=\"note\">\n      <div class=\"tick\">&#10003;</div>\n      <div class=\"txt\">Dieses Bußgeld wurde bereits als bezahlt bestätigt. Es ist keine weitere Aktion erforderlich.</div>\n    </div>\n    <table class=\"det\">\n      <tr><td class=\"k\">Dokument</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['fineType']}</td></tr>\n      <tr><td class=\"k\">Kennzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['plateNumber']}</td></tr>\n      <tr><td class=\"k\">Aktenzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['referenceNumber']}</td></tr>\n      <tr><td class=\"k\">Betrag</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['amountText']}</td></tr>\n    </table>\n  </div>\n  <div class=\"foot\">Mit freundlichen Grüßen, Fleet Team Germany &middot; Automatische Seite, bitte nicht antworten. Sie können dieses Fenster schließen.</div>\n</div>\n</body>\n</html>"
+                        "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Bereits bestätigt — GE Fleet Bußgeld</title>\n<style>\n  body{margin:0;background:#f3f4f6;font-family:Segoe UI,Arial,sans-serif;color:#1f2933;}\n  .wrap{max-width:560px;margin:24px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);}\n  .head{background:#000000;color:#fff;padding:18px 24px;}\n  .head h1{margin:0;font-size:18px;font-weight:600;}\n  .bar{height:4px;background:#D1A33C;}\n  .body{padding:24px;}\n  .note{display:flex;align-items:center;gap:12px;background:#e8f5e9;border:1px solid #c6e8c9;border-radius:6px;padding:14px 16px;margin:0 0 20px;}\n  .note .tick{width:28px;height:28px;flex:0 0 28px;background:#2e7d32;color:#fff;border-radius:50%;text-align:center;line-height:28px;font-size:16px;font-weight:700;}\n  .note .txt{font-size:14px;line-height:1.4;}\n  table.det{width:100%;border-collapse:collapse;margin:0;font-size:14px;}\n  table.det td{padding:7px 10px;border-bottom:1px solid #eceff1;vertical-align:top;}\n  table.det td.k{color:#5a6b78;width:46%;}\n  table.det td.v{font-weight:600;}\n  .foot{padding:14px 24px;font-size:12px;color:#8a97a0;border-top:1px solid #eceff1;}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n  <div class=\"head\"><h1>Zahlung bereits bestätigt</h1></div>\n  <div class=\"bar\"></div>\n  <div class=\"body\">\n    <div class=\"note\">\n      <div class=\"tick\">&#10003;</div>\n      <div class=\"txt\">Dieses Bußgeld wurde bereits als bezahlt bestätigt. Es ist keine weitere Aktion erforderlich.</div>\n    </div>\n    <table class=\"det\">\n      <tr><td class=\"k\">Dokument</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['fineType']}</td></tr>\n      <tr><td class=\"k\">Kennzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['plateNumber']}</td></tr>\n      <tr><td class=\"k\">Aktenzeichen</td><td class=\"v\">@{body('Run_script_GetForConfirm')?['result']?['referenceNumber']}</td></tr>\n      @{if(empty(body('Run_script_GetForConfirm')?['result']?['amountText']), '', concat('<tr><td class=\"k\">Betrag</td><td class=\"v\">', body('Run_script_GetForConfirm')?['result']?['amountText'], '</td></tr>'))}\n    </table>\n  </div>\n  <div class=\"foot\">Mit freundlichen Grüßen, Fleet Team Germany &middot; Automatische Seite, bitte nicht antworten. Sie können dieses Fenster schließen.</div>\n</div>\n</body>\n</html>"
                       },
                       "Response_Result_Already": {
                         "runAfter": {
@@ -320,7 +343,7 @@
                         "operationMetadataId": "512a7f3a-40ce-45ad-9597-8b9ba4e01c25"
                       },
                       "type": "Compose",
-                      "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Nicht erfasst — GE Fleet Bußgeld</title>\n<style>\n  body{margin:0;background:#f3f4f6;font-family:Segoe UI,Arial,sans-serif;color:#1f2933;}\n  .wrap{max-width:560px;margin:24px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);}\n  .head{background:#153643;color:#fff;padding:18px 24px;}\n  .head h1{margin:0;font-size:18px;font-weight:600;}\n  .bar{height:4px;background:#e5b611;}\n  .body{padding:24px;}\n  .warn{background:#fdecea;border:1px solid #f5c6c0;border-radius:6px;padding:14px 16px;margin:0 0 16px;font-size:14px;line-height:1.5;color:#8a1c12;}\n  p{font-size:14px;line-height:1.5;margin:0;}\n  .foot{padding:14px 24px;font-size:12px;color:#8a97a0;border-top:1px solid #eceff1;}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n  <div class=\"head\"><h1>Diese Bestätigung konnte nicht erfasst werden</h1></div>\n  <div class=\"bar\"></div>\n  <div class=\"body\">\n    <div class=\"warn\">Ihre Bestätigung konnte nicht gespeichert werden. Das Zahlungsdatum wurde möglicherweise nicht akzeptiert, oder dieser Link ist ungültig oder bereits verwendet.</div>\n    <p>Bitte gehen Sie zurück, überprüfen Sie das Zahlungsdatum und versuchen Sie es erneut.</p>\n  </div>\n  <div class=\"foot\">Mit freundlichen Grüßen, Fleet Team Germany &middot; Automatische Seite, bitte nicht antworten.</div>\n</div>\n</body>\n</html>"
+                      "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Nicht erfasst — GE Fleet Bußgeld</title>\n<style>\n  body{margin:0;background:#f3f4f6;font-family:Segoe UI,Arial,sans-serif;color:#1f2933;}\n  .wrap{max-width:560px;margin:24px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);}\n  .head{background:#000000;color:#fff;padding:18px 24px;}\n  .head h1{margin:0;font-size:18px;font-weight:600;}\n  .bar{height:4px;background:#D1A33C;}\n  .body{padding:24px;}\n  .warn{background:#fdecea;border:1px solid #f5c6c0;border-radius:6px;padding:14px 16px;margin:0 0 16px;font-size:14px;line-height:1.5;color:#8a1c12;}\n  p{font-size:14px;line-height:1.5;margin:0;}\n  .foot{padding:14px 24px;font-size:12px;color:#8a97a0;border-top:1px solid #eceff1;}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n  <div class=\"head\"><h1>Diese Bestätigung konnte nicht erfasst werden</h1></div>\n  <div class=\"bar\"></div>\n  <div class=\"body\">\n    <div class=\"warn\">Ihre Bestätigung konnte nicht gespeichert werden. Das Zahlungsdatum wurde möglicherweise nicht akzeptiert, oder dieser Link ist ungültig oder bereits verwendet.</div>\n    <p>Bitte gehen Sie zurück, überprüfen Sie das Zahlungsdatum und versuchen Sie es erneut.</p>\n  </div>\n  <div class=\"foot\">Mit freundlichen Grüßen, Fleet Team Germany &middot; Automatische Seite, bitte nicht antworten.</div>\n</div>\n</body>\n</html>"
                     },
                     "Response_Result_Problem": {
                       "runAfter": {
@@ -361,6 +384,64 @@
             "operationMetadataId": "0f1045fb-0a56-46ad-9a15-6ca35f8b43a9"
           },
           "type": "If"
+        },
+        "Initialize_varFleetHtml": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "f9a7cb56-b0ba-459a-a810-6e685730a79f"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varFleetHtml",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_varFleetSubject": {
+          "runAfter": {
+            "Initialize_varFleetHtml": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "855c8943-54a9-4cd1-91f8-fecc20148d13"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varFleetSubject",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Compose_FleetEmail": {
+          "runAfter": {
+            "Compose_subject": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f168185d-8f07-413c-be56-d8f153b7bbf9"
+          },
+          "type": "Compose",
+          "inputs": "@parameters('GE Fine Fleet Team Email (sk_GEFineFleetTeamEmail)')"
+        },
+        "Compose_subject": {
+          "runAfter": {
+            "Compose_paymentDate": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "2560320e-d247-4a3b-bd0e-398f78c6a80f"
+          },
+          "type": "Compose",
+          "inputs": "@coalesce(triggerOutputs()?['queries']?['subject'],'')"
         }
       }
     },

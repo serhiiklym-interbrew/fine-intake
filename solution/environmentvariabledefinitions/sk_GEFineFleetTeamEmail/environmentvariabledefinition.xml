@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="sk_GEFineFleetTeamEmail">
+  <defaultvalue>Fleet.Germany@ab-inbev.com</defaultvalue>
+  <displayname default="GE Fine Fleet Team Email">
+    <label description="GE Fine Fleet Team Email" languagecode="1033" />
+  </displayname>
+  <introducedversion>2.0.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

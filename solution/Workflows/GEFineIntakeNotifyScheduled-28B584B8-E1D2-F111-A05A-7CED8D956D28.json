@@ -36,6 +36,15 @@
         "api": {
           "name": "shared_office365"
         }
+      },
+      "shared_teams": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedteams_0404f"
+        },
+        "api": {
+          "name": "shared_teams"
+        }
       }
     },
     "definition": {
@@ -81,20 +90,12 @@
                 "Friday"
               ],
               "hours": [
-                "8",
-                "9",
                 "10",
-                "11",
-                "12",
-                "13",
                 "14",
-                "15",
-                "16",
-                "17",
-                "18"
+                "17"
               ],
               "minutes": [
-                30
+                0
               ]
             }
           },
@@ -112,20 +113,12 @@
                 "Friday"
               ],
               "hours": [
-                "8",
-                "9",
                 "10",
-                "11",
-                "12",
-                "13",
                 "14",
-                "15",
-                "16",
-                "17",
-                "18"
+                "17"
               ],
               "minutes": [
-                30
+                0
               ]
             }
           },
@@ -200,7 +193,7 @@
                       "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
                       "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
                       "file": "01OW33XMJQA7LUSF62TREJCJMIBVHNB7ON",
-                      "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YOSADX3JCKNSNB2F7ZHE6NTHZB3",
+                      "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YN5JIPM3BYTHRBZKOFWLUOASMUE",
                       "ScriptParameters/rowId": "@item()?['RowId']",
                       "ScriptParameters/todayIso": "@outputs('Compose_Today')"
                     },
@@ -403,7 +396,7 @@
                                   "type": "SetVariable",
                                   "inputs": {
                                     "name": "varDriverHtml",
-                                    "value": "<!DOCTYPE html>\n<html lang=\"de\">\n<head><meta charset=\"utf-8\"></head>\n<body style=\"margin:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#1f2933;\">\n<div style=\"max-width:620px;margin:0 auto;background:#fff;\">\n  <div style=\"background:#153643;color:#fff;padding:18px 28px;font-size:18px;font-weight:bold;\">Bußgeld - Zahlungsaufforderung</div>\n  <div style=\"height:4px;background:#e5b611;\"></div>\n  <div style=\"padding:24px 28px;font-size:14px;line-height:1.5;\">\n    <p style=\"margin:0 0 14px;\">Guten Tag @{body('Run_script_ClaimForSend')?['result']?['mail']?['employeeName']},</p>\n    <p style=\"margin:0 0 18px;\">wir möchten Sie über ein Bußgeld im Zusammenhang mit Ihrem Firmenfahrzeug informieren. Bitte veranlassen Sie die Zahlung an die zuständige Behörde bis zum Ablauf der Zahlungsfrist und bestätigen Sie anschließend das Zahlungsdatum über die untenstehende Schaltfläche.</p>\n    <table style=\"width:100%;border-collapse:collapse;font-size:14px;margin:0 0 18px;\">\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;width:48%;\">Dokument</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">Bußgeldbescheid</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Kennzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['plateNumber']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Aktenzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['referenceNumber']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatdatum</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['offenceDateText']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Zahlungsfrist</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['dueDateText']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Betrag</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['amountText']}</td></tr>\n    </table>\n    <div style=\"margin:22px 0 4px;\">\n      <a href=\"@{outputs('Compose_CaptureBase')}&amp;rowId=@{items('For_each_Candidate')?['RowId']}&amp;token=@{body('Run_script_ClaimForSend')?['result']?['confirmToken']}\" style=\"display:inline-block;background:#153643;color:#fff;text-decoration:none;font-weight:bold;font-size:15px;padding:12px 24px;border-radius:6px;\">Zahlungsdatum bestätigen</a>\n    </div>\n    <p style=\"margin:18px 0 0;\">Mit freundlichen Grüßen,<br>Fleet Team Germany</p>\n    <p style=\"margin:12px 0 0;font-size:12px;color:#8a97a0;\">Besuchen Sie unser <a href=\"https://anheuserbuschinbev.sharepoint.com/sites/zone-europe-people/SitePages/Company-Car---Germany.aspx\">Company Car SharePoint</a>.<br>Suchen Sie Ihre Frage in <a href=\"https://abinbevww.service-now.com/cheers?id=ec_dashboard_cheers\">CheerSearch</a>.</p>\n    <p style=\"margin:14px 0 0;font-size:11px;color:#a0a0a0;\"><i>Dies ist eine automatische E-Mail. Bei technischen Problemen erstellen Sie bitte eine Anfrage in <a href=\"https://abinbevww.service-now.com/cheers?id=sc_cat_item&amp;sys_id=41e0468e979d32d082bffaa6f053afc9\">ServiceNow</a>.</i></p>\n  </div>\n</div>\n</body>\n</html>"
+                                    "value": "<!DOCTYPE html>\n<html lang=\"de\">\n<head><meta charset=\"utf-8\"></head>\n<body style=\"margin:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#1f2933;\">\n<div style=\"max-width:620px;margin:0 auto;background:#fff;\">\n  <div style=\"background:#000000;color:#fff;padding:18px 28px;font-size:18px;font-weight:bold;\">Bußgeld - Zahlungsaufforderung</div>\n  <div style=\"height:4px;background:#D1A33C;\"></div>\n  <div style=\"padding:24px 28px;font-size:14px;line-height:1.5;\">\n    <p style=\"margin:0 0 14px;\">Guten Tag @{body('Run_script_ClaimForSend')?['result']?['mail']?['employeeName']},</p>\n    <p style=\"margin:0 0 18px;\">wir möchten Sie über ein Bußgeld im Zusammenhang mit Ihrem Firmenfahrzeug informieren. Bitte veranlassen Sie die Zahlung an die zuständige Behörde bis zum Ablauf der Zahlungsfrist und bestätigen Sie anschließend das Zahlungsdatum über die untenstehende Schaltfläche.</p>\n    <table style=\"width:100%;border-collapse:collapse;font-size:14px;margin:0 0 18px;\">\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;width:48%;\">Dokument</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">Bußgeldbescheid</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Kennzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['plateNumber']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Aktenzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['referenceNumber']}</td></tr>\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['offenceDateText']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatdatum</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['offenceDateText'], '</td></tr>'))}\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['dueDateText']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Zahlungsfrist</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['dueDateText'], '</td></tr>'))}\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['amountText']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Betrag</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['amountText'], '</td></tr>'))}\n    </table>\n    <div style=\"margin:22px 0 4px;\">\n      <a href=\"@{outputs('Compose_CaptureBase')}&amp;rowId=@{items('For_each_Candidate')?['RowId']}&amp;token=@{body('Run_script_ClaimForSend')?['result']?['confirmToken']}&amp;subject={{SUBJECT}}\" style=\"display:inline-block;background:#000000;color:#fff;text-decoration:none;font-weight:bold;font-size:15px;padding:12px 24px;border-radius:6px;\">Zahlungsdatum bestätigen</a>\n    </div>\n    <p style=\"margin:18px 0 0;\">Mit freundlichen Grüßen,<br>Fleet Team Germany</p>\n    <p style=\"margin:12px 0 0;font-size:12px;color:#8a97a0;\">Besuchen Sie unser <a href=\"https://anheuserbuschinbev.sharepoint.com/sites/zone-europe-people/SitePages/Company-Car---Germany.aspx\">Company Car SharePoint</a>.<br>Suchen Sie Ihre Frage in <a href=\"https://abinbevww.service-now.com/cheers?id=ec_dashboard_cheers\">CheerSearch</a>.</p>\n    <p style=\"margin:14px 0 0;font-size:11px;color:#a0a0a0;\"><i>Dies ist eine automatische E-Mail. Bei technischen Problemen erstellen Sie bitte eine Anfrage in <a href=\"https://abinbevww.service-now.com/cheers?id=sc_cat_item&amp;sys_id=41e0468e979d32d082bffaa6f053afc9\">ServiceNow</a>.</i></p>\n  </div>\n</div>\n</body>\n</html>"
                                   }
                                 },
                                 "Set_varDriverSubjectBase": {
@@ -434,7 +427,7 @@
                                   "type": "SetVariable",
                                   "inputs": {
                                     "name": "varDriverHtml",
-                                    "value": "<!DOCTYPE html>\n<html lang=\"de\">\n<head><meta charset=\"utf-8\"></head>\n<body style=\"margin:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#1f2933;\">\n<div style=\"max-width:620px;margin:0 auto;background:#fff;\">\n  <div style=\"background:#153643;color:#fff;padding:18px 28px;font-size:18px;font-weight:bold;\">Parkverstoß - Zahlungsaufforderung</div>\n  <div style=\"height:4px;background:#e5b611;\"></div>\n  <div style=\"padding:24px 28px;font-size:14px;line-height:1.5;\">\n    <p style=\"margin:0 0 14px;\">Guten Tag @{body('Run_script_ClaimForSend')?['result']?['mail']?['employeeName']},</p>\n    <p style=\"margin:0 0 18px;\">wir haben ein Verwarnungsgeld (Parkverstoß) im Zusammenhang mit Ihrem Firmenfahrzeug erhalten. Bitte begleichen Sie das beigefügte Verwarnungsgeld bis zum Ablauf der Zahlungsfrist und bestätigen Sie anschließend das Zahlungsdatum über die untenstehende Schaltfläche.</p>\n    <table style=\"width:100%;border-collapse:collapse;font-size:14px;margin:0 0 18px;\">\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;width:48%;\">Dokument</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">Verwarnungsgeld (Parkverstoß)</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Kennzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['plateNumber']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Aktenzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['referenceNumber']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatdatum</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['offenceDateText']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatort</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['location']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Zahlungsfrist</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['dueDateText']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Betrag</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['amountText']}</td></tr>\n    </table>\n    <div style=\"margin:22px 0 4px;\">\n      <a href=\"@{outputs('Compose_CaptureBase')}&amp;rowId=@{items('For_each_Candidate')?['RowId']}&amp;token=@{body('Run_script_ClaimForSend')?['result']?['confirmToken']}\" style=\"display:inline-block;background:#153643;color:#fff;text-decoration:none;font-weight:bold;font-size:15px;padding:12px 24px;border-radius:6px;\">Zahlungsdatum bestätigen</a>\n    </div>\n    <p style=\"margin:18px 0 0;\">Mit freundlichen Grüßen,<br>Fleet Team Germany</p>\n    <p style=\"margin:12px 0 0;font-size:12px;color:#8a97a0;\">Besuchen Sie unser <a href=\"https://anheuserbuschinbev.sharepoint.com/sites/zone-europe-people/SitePages/Company-Car---Germany.aspx\">Company Car SharePoint</a>.<br>Suchen Sie Ihre Frage in <a href=\"https://abinbevww.service-now.com/cheers?id=ec_dashboard_cheers\">CheerSearch</a>.</p>\n    <p style=\"margin:14px 0 0;font-size:11px;color:#a0a0a0;\"><i>Dies ist eine automatische E-Mail. Bei technischen Problemen erstellen Sie bitte eine Anfrage in <a href=\"https://abinbevww.service-now.com/cheers?id=sc_cat_item&amp;sys_id=41e0468e979d32d082bffaa6f053afc9\">ServiceNow</a>.</i></p>\n  </div>\n</div>\n</body>\n</html>"
+                                    "value": "<!DOCTYPE html>\n<html lang=\"de\">\n<head><meta charset=\"utf-8\"></head>\n<body style=\"margin:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#1f2933;\">\n<div style=\"max-width:620px;margin:0 auto;background:#fff;\">\n  <div style=\"background:#000000;color:#fff;padding:18px 28px;font-size:18px;font-weight:bold;\">Parkverstoß - Zahlungsaufforderung</div>\n  <div style=\"height:4px;background:#D1A33C;\"></div>\n  <div style=\"padding:24px 28px;font-size:14px;line-height:1.5;\">\n    <p style=\"margin:0 0 14px;\">Guten Tag @{body('Run_script_ClaimForSend')?['result']?['mail']?['employeeName']},</p>\n    <p style=\"margin:0 0 18px;\">wir haben ein Verwarnungsgeld (Parkverstoß) im Zusammenhang mit Ihrem Firmenfahrzeug erhalten. Bitte begleichen Sie das beigefügte Verwarnungsgeld bis zum Ablauf der Zahlungsfrist und bestätigen Sie anschließend das Zahlungsdatum über die untenstehende Schaltfläche.</p>\n    <table style=\"width:100%;border-collapse:collapse;font-size:14px;margin:0 0 18px;\">\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;width:48%;\">Dokument</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">Verwarnungsgeld (Parkverstoß)</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Kennzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['plateNumber']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Aktenzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['referenceNumber']}</td></tr>\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['offenceDateText']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatdatum</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['offenceDateText'], '</td></tr>'))}\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['location']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatort</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['location'], '</td></tr>'))}\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['dueDateText']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Zahlungsfrist</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['dueDateText'], '</td></tr>'))}\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['amountText']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Betrag</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['amountText'], '</td></tr>'))}\n    </table>\n    <div style=\"margin:22px 0 4px;\">\n      <a href=\"@{outputs('Compose_CaptureBase')}&amp;rowId=@{items('For_each_Candidate')?['RowId']}&amp;token=@{body('Run_script_ClaimForSend')?['result']?['confirmToken']}&amp;subject={{SUBJECT}}\" style=\"display:inline-block;background:#000000;color:#fff;text-decoration:none;font-weight:bold;font-size:15px;padding:12px 24px;border-radius:6px;\">Zahlungsdatum bestätigen</a>\n    </div>\n    <p style=\"margin:18px 0 0;\">Mit freundlichen Grüßen,<br>Fleet Team Germany</p>\n    <p style=\"margin:12px 0 0;font-size:12px;color:#8a97a0;\">Besuchen Sie unser <a href=\"https://anheuserbuschinbev.sharepoint.com/sites/zone-europe-people/SitePages/Company-Car---Germany.aspx\">Company Car SharePoint</a>.<br>Suchen Sie Ihre Frage in <a href=\"https://abinbevww.service-now.com/cheers?id=ec_dashboard_cheers\">CheerSearch</a>.</p>\n    <p style=\"margin:14px 0 0;font-size:11px;color:#a0a0a0;\"><i>Dies ist eine automatische E-Mail. Bei technischen Problemen erstellen Sie bitte eine Anfrage in <a href=\"https://abinbevww.service-now.com/cheers?id=sc_cat_item&amp;sys_id=41e0468e979d32d082bffaa6f053afc9\">ServiceNow</a>.</i></p>\n  </div>\n</div>\n</body>\n</html>"
                                   }
                                 },
                                 "Set_varDriverSubjectBase_Fair": {
@@ -465,7 +458,7 @@
                                   "type": "SetVariable",
                                   "inputs": {
                                     "name": "varDriverHtml",
-                                    "value": "<!DOCTYPE html>\n<html lang=\"de\">\n<head><meta charset=\"utf-8\"></head>\n<body style=\"margin:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#1f2933;\">\n<div style=\"max-width:620px;margin:0 auto;background:#fff;\">\n  <div style=\"background:#153643;color:#fff;padding:18px 28px;font-size:18px;font-weight:bold;\">Kostenbescheid - offene Forderung</div>\n  <div style=\"height:4px;background:#e5b611;\"></div>\n  <div style=\"padding:24px 28px;font-size:14px;line-height:1.5;\">\n    <p style=\"margin:0 0 14px;\">Guten Tag @{body('Run_script_ClaimForSend')?['result']?['mail']?['employeeName']},</p>\n    <p style=\"margin:0 0 18px;\">für Ihr Firmenfahrzeug liegt eine offene Forderung (Kostenbescheid) vor. Bitte begleichen Sie die offene Forderung vorrangig an die zuständige Behörde, um weitere Vollstreckungsmaßnahmen zu vermeiden, und bestätigen Sie anschließend das Zahlungsdatum über die untenstehende Schaltfläche.</p>\n    <table style=\"width:100%;border-collapse:collapse;font-size:14px;margin:0 0 18px;\">\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;width:48%;\">Dokument</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">Kostenbescheid</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Kennzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['plateNumber']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Aktenzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['referenceNumber']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatdatum</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['offenceDateText']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatort</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['location']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Zahlungsfrist</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['dueDateText']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Betrag</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['amountText']}</td></tr>\n    </table>\n    <div style=\"margin:22px 0 4px;\">\n      <a href=\"@{outputs('Compose_CaptureBase')}&amp;rowId=@{items('For_each_Candidate')?['RowId']}&amp;token=@{body('Run_script_ClaimForSend')?['result']?['confirmToken']}\" style=\"display:inline-block;background:#153643;color:#fff;text-decoration:none;font-weight:bold;font-size:15px;padding:12px 24px;border-radius:6px;\">Zahlungsdatum bestätigen</a>\n    </div>\n    <p style=\"margin:18px 0 0;\">Mit freundlichen Grüßen,<br>Fleet Team Germany</p>\n    <p style=\"margin:12px 0 0;font-size:12px;color:#8a97a0;\">Besuchen Sie unser <a href=\"https://anheuserbuschinbev.sharepoint.com/sites/zone-europe-people/SitePages/Company-Car---Germany.aspx\">Company Car SharePoint</a>.<br>Suchen Sie Ihre Frage in <a href=\"https://abinbevww.service-now.com/cheers?id=ec_dashboard_cheers\">CheerSearch</a>.</p>\n    <p style=\"margin:14px 0 0;font-size:11px;color:#a0a0a0;\"><i>Dies ist eine automatische E-Mail. Bei technischen Problemen erstellen Sie bitte eine Anfrage in <a href=\"https://abinbevww.service-now.com/cheers?id=sc_cat_item&amp;sys_id=41e0468e979d32d082bffaa6f053afc9\">ServiceNow</a>.</i></p>\n  </div>\n</div>\n</body>\n</html>"
+                                    "value": "<!DOCTYPE html>\n<html lang=\"de\">\n<head><meta charset=\"utf-8\"></head>\n<body style=\"margin:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#1f2933;\">\n<div style=\"max-width:620px;margin:0 auto;background:#fff;\">\n  <div style=\"background:#000000;color:#fff;padding:18px 28px;font-size:18px;font-weight:bold;\">Kostenbescheid - offene Forderung</div>\n  <div style=\"height:4px;background:#D1A33C;\"></div>\n  <div style=\"padding:24px 28px;font-size:14px;line-height:1.5;\">\n    <p style=\"margin:0 0 14px;\">Guten Tag @{body('Run_script_ClaimForSend')?['result']?['mail']?['employeeName']},</p>\n    <p style=\"margin:0 0 18px;\">für Ihr Firmenfahrzeug liegt eine offene Forderung (Kostenbescheid) vor. Bitte begleichen Sie die offene Forderung vorrangig an die zuständige Behörde, um weitere Vollstreckungsmaßnahmen zu vermeiden, und bestätigen Sie anschließend das Zahlungsdatum über die untenstehende Schaltfläche.</p>\n    <table style=\"width:100%;border-collapse:collapse;font-size:14px;margin:0 0 18px;\">\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;width:48%;\">Dokument</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">Kostenbescheid</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Kennzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['plateNumber']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Aktenzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['referenceNumber']}</td></tr>\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['offenceDateText']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatdatum</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['offenceDateText'], '</td></tr>'))}\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['location']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatort</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['location'], '</td></tr>'))}\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['dueDateText']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Zahlungsfrist</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['dueDateText'], '</td></tr>'))}\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['amountText']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Betrag</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['amountText'], '</td></tr>'))}\n    </table>\n    <div style=\"margin:22px 0 4px;\">\n      <a href=\"@{outputs('Compose_CaptureBase')}&amp;rowId=@{items('For_each_Candidate')?['RowId']}&amp;token=@{body('Run_script_ClaimForSend')?['result']?['confirmToken']}&amp;subject={{SUBJECT}}\" style=\"display:inline-block;background:#000000;color:#fff;text-decoration:none;font-weight:bold;font-size:15px;padding:12px 24px;border-radius:6px;\">Zahlungsdatum bestätigen</a>\n    </div>\n    <p style=\"margin:18px 0 0;\">Mit freundlichen Grüßen,<br>Fleet Team Germany</p>\n    <p style=\"margin:12px 0 0;font-size:12px;color:#8a97a0;\">Besuchen Sie unser <a href=\"https://anheuserbuschinbev.sharepoint.com/sites/zone-europe-people/SitePages/Company-Car---Germany.aspx\">Company Car SharePoint</a>.<br>Suchen Sie Ihre Frage in <a href=\"https://abinbevww.service-now.com/cheers?id=ec_dashboard_cheers\">CheerSearch</a>.</p>\n    <p style=\"margin:14px 0 0;font-size:11px;color:#a0a0a0;\"><i>Dies ist eine automatische E-Mail. Bei technischen Problemen erstellen Sie bitte eine Anfrage in <a href=\"https://abinbevww.service-now.com/cheers?id=sc_cat_item&amp;sys_id=41e0468e979d32d082bffaa6f053afc9\">ServiceNow</a>.</i></p>\n  </div>\n</div>\n</body>\n</html>"
                                   }
                                 },
                                 "Set_varDriverSubjectBase_CN": {
@@ -497,7 +490,7 @@
                         },
                         "Compose_DriverCC_Resolved": {
                           "runAfter": {
-                            "Switch_FineType_Driver": [
+                            "Set_varDriverHtml_Final": [
                               "Succeeded"
                             ]
                           },
@@ -548,9 +541,9 @@
                               "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
                             },
                             "parameters": {
-                              "emailMessage/To": "Serhii.Klym-ext@ab-Inbev.com",
-                              "emailMessage/Subject": "@concat(outputs('Compose_DriverSubjectPrefix'), variables('varDriverSubjectBase'))",
-                              "emailMessage/Body": "@variables('varDriverHtml')",
+                              "emailMessage/To": "Serhii.Klym-ext@ab-Inbev.com;Svitlana.Kamal@AB-Inbev.com;botagoz.ozganova@ab-inbev.com",
+                              "emailMessage/Subject": "@outputs('Compose_DriverSubjectFull')",
+                              "emailMessage/Body": "@variables('varDriverHtmlFinal')",
                               "emailMessage/Cc": "@if(equals(body('Run_script_ClaimForSend')?['result']?['escalate'], true), 'Serhii.Klym-ext@ab-Inbev.com', '')",
                               "emailMessage/Attachments": [
                                 {
@@ -577,7 +570,7 @@
                                         "operationMetadataId": "5e44f614-769b-4381-b4c4-c24fd2c46eb7"
                                       },
                                       "type": "Compose",
-                                      "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head><meta charset=\"utf-8\"></head>\n<body style=\"margin:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#1f2933;\">\n<div style=\"max-width:620px;margin:0 auto;background:#fff;\">\n  <div style=\"background:#153643;color:#fff;padding:18px 28px;font-size:18px;font-weight:bold;\">Fahrerbenennung</div>\n  <div style=\"height:4px;background:#e5b611;\"></div>\n  <div style=\"padding:24px 28px;font-size:14px;line-height:1.5;\">\n    <p style=\"margin:0 0 14px;\">Sehr geehrte Damen und Herren,</p>\n    <p style=\"margin:0 0 18px;\">hiermit teilen wir Ihnen die Angaben unseres nutzungsberechtigten Mitarbeiters in Bezug auf den nachstehend genannten Bußgeldbescheid mit:</p>\n    <table style=\"width:100%;border-collapse:collapse;font-size:14px;margin:0 0 18px;\">\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;width:48%;\">Kennzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['plateNumber']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Aktenzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['referenceNumber']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatdatum</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['offenceDateText']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Zahlungsfrist</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['dueDateText']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Name des Mitarbeiters</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['employeeName']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Anschrift</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['employeeAddress']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Geburtsdatum</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_Eop_FindByPn')?['result']?['birthDate']}</td></tr>\n    </table>\n    <p style=\"margin:18px 0 0;\">Mit freundlichen Grüßen,<br>Fleet Team Germany</p>\n    <p style=\"margin:12px 0 0;font-size:12px;color:#8a97a0;\">Besuchen Sie unser <a href=\"https://anheuserbuschinbev.sharepoint.com/sites/zone-europe-people/SitePages/Company-Car---Germany.aspx\">Company Car SharePoint</a>.<br>Suchen Sie Ihre Frage in <a href=\"https://abinbevww.service-now.com/cheers?id=ec_dashboard_cheers\">CheerSearch</a>.</p>\n    <p style=\"margin:14px 0 0;font-size:11px;color:#a0a0a0;\"><i>Dies ist eine automatische E-Mail. Bei Fragen kontaktieren Sie bitte Fleet.Germany@ab-inbev.com</i></p>\n  </div>\n</div>\n</body>\n</html>"
+                                      "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head><meta charset=\"utf-8\"></head>\n<body style=\"margin:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#1f2933;\">\n<div style=\"max-width:620px;margin:0 auto;background:#fff;\">\n  <div style=\"background:#000000;color:#fff;padding:18px 28px;font-size:18px;font-weight:bold;\">Fahrerbenennung</div>\n  <div style=\"height:4px;background:#D1A33C;\"></div>\n  <div style=\"padding:24px 28px;font-size:14px;line-height:1.5;\">\n    <p style=\"margin:0 0 14px;\">Sehr geehrte Damen und Herren,</p>\n    <p style=\"margin:0 0 18px;\">hiermit teilen wir Ihnen die Angaben unseres nutzungsberechtigten Mitarbeiters in Bezug auf den nachstehend genannten Bußgeldbescheid mit:</p>\n    <table style=\"width:100%;border-collapse:collapse;font-size:14px;margin:0 0 18px;\">\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;width:48%;\">Kennzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['plateNumber']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Aktenzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['referenceNumber']}</td></tr>\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['offenceDateText']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatdatum</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['offenceDateText'], '</td></tr>'))}\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['dueDateText']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Zahlungsfrist</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['dueDateText'], '</td></tr>'))}\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Name des Mitarbeiters</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['employeeName']}</td></tr>\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['employeeAddress']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Anschrift</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['employeeAddress'], '</td></tr>'))}\n      @{if(empty(body('Run_script_Eop_FindByPn')?['result']?['birthDate']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Geburtsdatum</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_Eop_FindByPn')?['result']?['birthDate'], '</td></tr>'))}\n    </table>\n    <p style=\"margin:18px 0 0;\">Mit freundlichen Grüßen,<br>Fleet Team Germany</p>\n    <p style=\"margin:12px 0 0;font-size:12px;color:#8a97a0;\">Besuchen Sie unser <a href=\"https://anheuserbuschinbev.sharepoint.com/sites/zone-europe-people/SitePages/Company-Car---Germany.aspx\">Company Car SharePoint</a>.<br>Suchen Sie Ihre Frage in <a href=\"https://abinbevww.service-now.com/cheers?id=ec_dashboard_cheers\">CheerSearch</a>.</p>\n    <p style=\"margin:14px 0 0;font-size:11px;color:#a0a0a0;\"><i>Dies ist eine automatische E-Mail. Bei Fragen kontaktieren Sie bitte Fleet.Germany@ab-inbev.com</i></p>\n  </div>\n</div>\n</body>\n</html>"
                                     },
                                     "Send_Mail_AuthNormal": {
                                       "runAfter": {
@@ -596,9 +589,15 @@
                                           "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
                                         },
                                         "parameters": {
-                                          "emailMessage/To": "Serhii.Klym-ext@ab-Inbev.com",
+                                          "emailMessage/To": "Serhii.Klym-ext@ab-Inbev.com;Svitlana.Kamal@AB-Inbev.com;botagoz.ozganova@ab-inbev.com",
                                           "emailMessage/Subject": "@concat('Fahrerbenennung — Aktenzeichen: ', body('Run_script_ClaimForSend')?['result']?['mail']?['referenceNumber'], ' || ', body('Run_script_ClaimForSend')?['result']?['mail']?['plateNumber'])",
                                           "emailMessage/Body": "<p>@{outputs('Compose_Html_AuthNormal')}</p>",
+                                          "emailMessage/Attachments": [
+                                            {
+                                              "Name": "@last(split(body('Run_script_ClaimForSend')?['result']?['fileUrl'],'/'))",
+                                              "ContentBytes": "@body('Get_file_content_DriverPdf')"
+                                            }
+                                          ],
                                           "emailMessage/Importance": "High"
                                         },
                                         "authentication": "@parameters('$authentication')"
@@ -615,7 +614,7 @@
                                         "operationMetadataId": "b29f0278-7851-4434-8005-088750f428bf"
                                       },
                                       "type": "Compose",
-                                      "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head><meta charset=\"utf-8\"></head>\n<body style=\"margin:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#1f2933;\">\n<div style=\"max-width:620px;margin:0 auto;background:#fff;\">\n  <div style=\"background:#153643;color:#fff;padding:18px 28px;font-size:18px;font-weight:bold;\">Kostenbescheid - Fahrerbenennung</div>\n  <div style=\"height:4px;background:#e5b611;\"></div>\n  <div style=\"padding:24px 28px;font-size:14px;line-height:1.5;\">\n    <p style=\"margin:0 0 14px;\">Sehr geehrte Damen und Herren,</p>\n    <p style=\"margin:0 0 18px;\">hiermit teilen wir Ihnen die Angaben unseres nutzungsberechtigten Mitarbeiters in Bezug auf den nachstehend genannten Kostenbescheid mit:</p>\n    <table style=\"width:100%;border-collapse:collapse;font-size:14px;margin:0 0 18px;\">\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;width:48%;\">Kennzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['plateNumber']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Aktenzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['referenceNumber']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatdatum</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['offenceDateText']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatort</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['location']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Name des Mitarbeiters</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['employeeName']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Anschrift</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['employeeAddress']}</td></tr>\n    </table>\n    <p style=\"margin:18px 0 0;\">Mit freundlichen Grüßen,<br>Fleet Team Germany</p>\n    <p style=\"margin:12px 0 0;font-size:12px;color:#8a97a0;\">Besuchen Sie unser <a href=\"https://anheuserbuschinbev.sharepoint.com/sites/zone-europe-people/SitePages/Company-Car---Germany.aspx\">Company Car SharePoint</a>.<br>Suchen Sie Ihre Frage in <a href=\"https://abinbevww.service-now.com/cheers?id=ec_dashboard_cheers\">CheerSearch</a>.</p>\n    <p style=\"margin:14px 0 0;font-size:11px;color:#a0a0a0;\"><i>Dies ist eine automatische E-Mail. Bei Fragen kontaktieren Sie bitte Fleet.Germany@ab-inbev.com</i></p>\n  </div>\n</div>\n</body>\n</html>"
+                                      "inputs": "<!DOCTYPE html>\n<html lang=\"de\">\n<head><meta charset=\"utf-8\"></head>\n<body style=\"margin:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#1f2933;\">\n<div style=\"max-width:620px;margin:0 auto;background:#fff;\">\n  <div style=\"background:#000000;color:#fff;padding:18px 28px;font-size:18px;font-weight:bold;\">Kostenbescheid - Fahrerbenennung</div>\n  <div style=\"height:4px;background:#D1A33C;\"></div>\n  <div style=\"padding:24px 28px;font-size:14px;line-height:1.5;\">\n    <p style=\"margin:0 0 14px;\">Sehr geehrte Damen und Herren,</p>\n    <p style=\"margin:0 0 18px;\">hiermit teilen wir Ihnen die Angaben unseres nutzungsberechtigten Mitarbeiters in Bezug auf den nachstehend genannten Kostenbescheid mit:</p>\n    <table style=\"width:100%;border-collapse:collapse;font-size:14px;margin:0 0 18px;\">\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;width:48%;\">Kennzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['plateNumber']}</td></tr>\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Aktenzeichen</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['referenceNumber']}</td></tr>\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['offenceDateText']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatdatum</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['offenceDateText'], '</td></tr>'))}\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['location']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Tatort</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['location'], '</td></tr>'))}\n      <tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Name des Mitarbeiters</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">@{body('Run_script_ClaimForSend')?['result']?['mail']?['employeeName']}</td></tr>\n      @{if(empty(body('Run_script_ClaimForSend')?['result']?['mail']?['employeeAddress']), '', concat('<tr><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;color:#5a6b78;\">Anschrift</td><td style=\"padding:7px 10px;border-bottom:1px solid #eceff1;font-weight:bold;\">', body('Run_script_ClaimForSend')?['result']?['mail']?['employeeAddress'], '</td></tr>'))}\n    </table>\n    <p style=\"margin:18px 0 0;\">Mit freundlichen Grüßen,<br>Fleet Team Germany</p>\n    <p style=\"margin:12px 0 0;font-size:12px;color:#8a97a0;\">Besuchen Sie unser <a href=\"https://anheuserbuschinbev.sharepoint.com/sites/zone-europe-people/SitePages/Company-Car---Germany.aspx\">Company Car SharePoint</a>.<br>Suchen Sie Ihre Frage in <a href=\"https://abinbevww.service-now.com/cheers?id=ec_dashboard_cheers\">CheerSearch</a>.</p>\n    <p style=\"margin:14px 0 0;font-size:11px;color:#a0a0a0;\"><i>Dies ist eine automatische E-Mail. Bei Fragen kontaktieren Sie bitte Fleet.Germany@ab-inbev.com</i></p>\n  </div>\n</div>\n</body>\n</html>"
                                     },
                                     "Send_an_email_(V2)": {
                                       "runAfter": {
@@ -634,9 +633,15 @@
                                           "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
                                         },
                                         "parameters": {
-                                          "emailMessage/To": "Serhii.Klym-ext@ab-Inbev.com",
+                                          "emailMessage/To": "Serhii.Klym-ext@ab-Inbev.com;Svitlana.Kamal@AB-Inbev.com;botagoz.ozganova@ab-inbev.com",
                                           "emailMessage/Subject": "@concat('Kostenbescheid — Aktenzeichen: ', body('Run_script_ClaimForSend')?['result']?['mail']?['referenceNumber'], ' || ', body('Run_script_ClaimForSend')?['result']?['mail']?['plateNumber'])",
                                           "emailMessage/Body": "<p>@{outputs('Compose_Html_AuthCN')}</p>",
+                                          "emailMessage/Attachments": [
+                                            {
+                                              "Name": "@last(split(body('Run_script_ClaimForSend')?['result']?['fileUrl'],'/'))",
+                                              "ContentBytes": "@body('Get_file_content_DriverPdf')"
+                                            }
+                                          ],
                                           "emailMessage/Importance": "High"
                                         },
                                         "authentication": "@parameters('$authentication')"
@@ -670,6 +675,33 @@
                             "operationMetadataId": "2fdf2b4c-bda7-43f4-a98c-88d149084bea"
                           },
                           "type": "If"
+                        },
+                        "Compose_DriverSubjectFull": {
+                          "runAfter": {
+                            "Switch_FineType_Driver": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "aa933c93-1c62-4fd0-8013-1c7020f0285c"
+                          },
+                          "type": "Compose",
+                          "inputs": "@concat(outputs('Compose_DriverSubjectPrefix'), variables('varDriverSubjectBase'))"
+                        },
+                        "Set_varDriverHtml_Final": {
+                          "runAfter": {
+                            "Compose_DriverSubjectFull": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "927c9c19-353d-4202-a379-2290a66e4d36"
+                          },
+                          "type": "SetVariable",
+                          "inputs": {
+                            "name": "varDriverHtmlFinal",
+                            "value": "@{   replace(variables('varDriverHtml'), '{{SUBJECT}}', encodeUriComponent(outputs('Compose_DriverSubjectFull')))}"
+                          }
                         }
                       },
                       "runAfter": {
@@ -809,6 +841,73 @@
                           },
                           "type": "Compose",
                           "inputs": "@json(concat('[[\"', variables('varCorrelationId'), '\",\"', body('Run_script_ClaimForSend')?['result']?['mail']?['plateNumber'], ' / ', body('Run_script_ClaimForSend')?['result']?['mail']?['referenceNumber'], '\",\"', body('Run_script_ClaimForSend')?['result']?['mail']?['fineType'], '\",\"', variables('varStartTime'), '\",\"', variables('varStartTime'), '\",\"', utcNow(), '\",', div(sub(ticks(utcNow()), ticks(variables('varStartTime'))), 10000000), ',\"Failure\",0,\"', replace(replace(coalesce(outputs('Compose_SendError'), 'Send failed'), '\"', ''), decodeUriComponent('%0A'), ' '), '\",\"', workflow()?['run']?['name'], '\"]]'))"
+                        },
+                        "Compose_SendErrorMsg": {
+                          "runAfter": {
+                            "Run_script_Log_SendFailure": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "48675b5a-0efa-47df-b85f-4b2a601862e0"
+                          },
+                          "type": "Compose",
+                          "inputs": "@replace(replace(coalesce(first(body('Filter_FailedSend'))?['error']?['message'],'Send failed'),'\"',''),decodeUriComponent('%0A'),' ')"
+                        },
+                        "Compose_SendFailed_Teams": {
+                          "runAfter": {
+                            "Compose_SendErrorMsg": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "fcf24752-a71b-48ce-98d5-e5748b5f7554"
+                          },
+                          "type": "Compose",
+                          "inputs": "<div style=\"font-family:Segoe UI,Arial,sans-serif;max-width:640px;margin:0 auto;border:1px solid #d0d0d0;\">\n  <div style=\"background:#153643;color:#ffffff;padding:16px 24px;font-size:18px;font-weight:600;\">\n    Fleet Germany - Notification send failed\n  </div>\n  <div style=\"height:4px;background:#e5b611;\"></div>\n  <div style=\"padding:20px 24px;color:#222222;font-size:14px;line-height:1.5;\">\n    <p>Sending a fine notification failed. The row was marked SendFailed and will be retried on the next run.</p>\n    <p style=\"background:#fbf3d0;border-left:3px solid #e5b611;padding:10px 12px;margin:16px 0;\">\n      <strong>Error:</strong> @{outputs('Compose_SendErrorMsg')}\n    </p>\n    <table style=\"border-collapse:collapse;width:100%;font-size:14px;\">\n      <tr><td style=\"padding:6px 8px;color:#666;width:180px;\">Plate number</td><td style=\"padding:6px 8px;font-weight:600;\">@{items('For_each_Candidate')?['PlateNumber']}</td></tr>\n      <tr><td style=\"padding:6px 8px;color:#666;\">Reference number</td><td style=\"padding:6px 8px;\">@{items('For_each_Candidate')?['ReferenceNumber']}</td></tr>\n      <tr><td style=\"padding:6px 8px;color:#666;\">Fine type</td><td style=\"padding:6px 8px;\">@{items('For_each_Candidate')?['FineType']}</td></tr>\n    </table>\n  </div>\n  <div style=\"background:#f2f2f2;color:#888;padding:12px 24px;font-size:12px;\">\n    Automated message from GE Fine Intake.\n  </div>\n</div>"
+                        },
+                        "Condition_FirstSendFail": {
+                          "actions": {
+                            "Post_message_in_a_chat_or_channel": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "11cd16fb-7b6c-4b48-a538-accb58cfbc9d"
+                              },
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "connectionName": "shared_teams",
+                                  "operationId": "PostMessageToConversation",
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                                },
+                                "parameters": {
+                                  "poster": "User",
+                                  "location": "Channel",
+                                  "body/recipient/groupId": "482dae98-318c-42d9-a7d5-54cc23968ef2",
+                                  "body/recipient/channelId": "19:_1NJtZj2ZMy00h9iDGPQD1N-_oaLv5Gq-0PBGSc0iVY1@thread.tacv2",
+                                  "body/messageBody": "@outputs('Compose_SendFailed_Teams')"
+                                },
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            }
+                          },
+                          "runAfter": {
+                            "Compose_SendFailed_Teams": [
+                              "Succeeded"
+                            ]
+                          },
+                          "expression": {
+                            "not": {
+                              "equals": [
+                                "@items('For_each_Candidate')?['MailStatus']",
+                                "SendFailed"
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "operationMetadataId": "aaa5b34e-dd77-494b-a7eb-968d72c9725a"
+                          },
+                          "type": "If"
                         }
                       },
                       "runAfter": {
@@ -871,7 +970,7 @@
             }
           },
           "runAfter": {
-            "Initialize_varStartTime": [
+            "Initialize_varDriverHtmlFinal": [
               "Succeeded"
             ]
           },
@@ -978,6 +1077,25 @@
                 "name": "varStartTime",
                 "type": "string",
                 "value": "@{utcNow()}"
+              }
+            ]
+          }
+        },
+        "Initialize_varDriverHtmlFinal": {
+          "runAfter": {
+            "Initialize_varStartTime": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e4644882-55b9-4da2-9a91-515a80c53119"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varDriverHtmlFinal",
+                "type": "string"
               }
             ]
           }

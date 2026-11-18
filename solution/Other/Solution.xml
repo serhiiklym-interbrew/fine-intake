@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ImportExportXml version="9.2.26101.177" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26101.177" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26101.00177">
+<ImportExportXml version="9.2.26103.165" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26103.165" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26103.00165">
   <SolutionManifest>
     <UniqueName>GEFineIntake</UniqueName>
     <LocalizedNames>
       <LocalizedName description="GE - Fine Intake" languagecode="1033" />
     </LocalizedNames>
     <Descriptions />
-    <Version>2.0.0.0</Version>
+    <Version>2.1.0.0</Version>
     <Managed>0</Managed>
     <Publisher>
       <UniqueName>PersonalDev</UniqueName>

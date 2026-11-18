@@ -45,6 +45,15 @@
         "api": {
           "name": "shared_excelonlinebusiness"
         }
+      },
+      "shared_teams": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sk_sharedteams_0404f"
+        },
+        "api": {
+          "name": "shared_teams"
+        }
       }
     },
     "definition": {
@@ -303,7 +312,7 @@
                   },
                   "expression": {
                     "equals": [
-                      "@and(not(empty(body('Parse_FineData')?['Aktenzeichen'])), not(empty(body('Parse_FineData')?['OffenceDate'])), not(empty(string(body('Parse_FineData')?['Amount']))))",
+                      "@   and(not(empty(body('Parse_FineData')?['Aktenzeichen'])), not(empty(body('Parse_FineData')?['OffenceDate'])), not(empty(body('Parse_FineData')?['AuthorityEmail'])))",
                       true
                     ]
                   },
@@ -392,7 +401,7 @@
                       "source": "sites/anheuserbuschinbev.sharepoint.com,ca5b3229-8036-4aef-88d6-aaf61c211a67,5292d537-62d8-4317-9afb-ab6c3070592c",
                       "drive": "b!KTJbyjaA70qI1qr2HCEaZzfVklLYYhdDmvurbDBwWSyHiDo8T5R4Q7ZTHIPH6f6-",
                       "file": "01OW33XMJQA7LUSF62TREJCJMIBVHNB7ON",
-                      "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YJIAW5SKDBVSNH3QSVP6FSNLL4H",
+                      "scriptId": "ms-officescript%3A%2F%2Fonedrive_business_itemlink%2F01LO5R4YN7BCJT63CTFBCZMIIMAS7GBUB5",
                       "ScriptParameters/fileName": "@triggerOutputs()?['body/{FilenameWithExtension}']",
                       "ScriptParameters/fineType": "Normal",
                       "ScriptParameters/status": "@variables('varStatus')",
@@ -459,7 +468,7 @@
                     "operationMetadataId": "cc639e39-10f2-4d45-a1aa-73c930a324c9"
                   },
                   "type": "Compose",
-                  "inputs": "@concat('/FLEET GERMANY/Fines/Fines_Payroll-Input/0. Testing AI/Processed/', utcNow('yyyy'))"
+                  "inputs": "@concat('/FLEET GERMANY/Fines/Fines_Payroll-Input/Processed_fines/', utcNow('yyyy'))"
                 },
                 "Compose_FolderFull": {
                   "runAfter": {
@@ -471,7 +480,7 @@
                     "operationMetadataId": "2c13b491-4371-4c44-bb32-515f6f4090a4"
                   },
                   "type": "Compose",
-                  "inputs": "@concat('/Shared Documents/FLEET GERMANY/Fines/Fines_Payroll-Input/0. Testing AI/Processed/', utcNow('yyyy'))"
+                  "inputs": "@concat('/Shared Documents/FLEET GERMANY/Fines/Fines_Payroll-Input/Processed_fines/', utcNow('yyyy'))"
                 },
                 "Condition_Inserted": {
                   "actions": {
@@ -511,6 +520,59 @@
                         },
                         "authentication": "@parameters('$authentication')"
                       }
+                    },
+                    "Condition_IsCheck": {
+                      "actions": {
+                        "Compose_Check_Teams": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "146047b9-e3c9-4029-aa21-1fe705644ef1"
+                          },
+                          "type": "Compose",
+                          "inputs": "<div style=\"font-family:Segoe UI,Arial,sans-serif;max-width:640px;margin:0 auto;border:1px solid #d0d0d0;\">\n  <div style=\"background:#153643;color:#ffffff;padding:16px 24px;font-size:18px;font-weight:600;\">\n    Fleet Germany - Normal Fine needs review\n  </div>\n  <div style=\"height:4px;background:#e5b611;\"></div>\n  <div style=\"padding:20px 24px;color:#222222;font-size:14px;line-height:1.5;\">\n    <p>A normal fine was recognized, but some required fields are missing. Open the row in Fines_Data and fill the empty fields below.</p>\n    <table style=\"border-collapse:collapse;width:100%;font-size:14px;\">\n      <tr><td style=\"padding:6px 8px;color:#666;width:180px;\">Plate number</td><td style=\"padding:6px 8px;font-weight:600;\">@{body('Parse_FineData')?['PlateNumber']}</td></tr>\n      <tr><td style=\"padding:6px 8px;color:#666;\">Reference number</td><td style=\"padding:6px 8px;\">@{body('Parse_FineData')?['Aktenzeichen']}</td></tr>\n      <tr><td style=\"padding:6px 8px;color:#666;\">Offence date</td><td style=\"padding:6px 8px;\">@{if(empty(body('Parse_FineData')?['OffenceDate']), '', formatDateTime(body('Parse_FineData')?['OffenceDate'], 'dd.MM.yyyy'))}</td></tr>\n    </table>\n    <p style=\"margin:20px 0 8px;color:#666;\">\n      File in SharePoint (<strong>Normal</strong> folder → Processed_fines/@{formatDateTime(variables('varStartTime'), 'yyyy')}): <strong>@{triggerOutputs()?['body/{FilenameWithExtension}']}</strong>\n    </p>\n  </div>\n  <div style=\"background:#f2f2f2;color:#888;padding:12px 24px;font-size:12px;\">\n    Automated message from GE Fine Intake.\n  </div>\n</div>"
+                        },
+                        "Post_message_in_a_chat_or_channel": {
+                          "runAfter": {
+                            "Compose_Check_Teams": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "86ee9e7c-b992-43e2-98fb-27a0053a40cf"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_teams",
+                              "operationId": "PostMessageToConversation",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                            },
+                            "parameters": {
+                              "poster": "User",
+                              "location": "Channel",
+                              "body/recipient/groupId": "482dae98-318c-42d9-a7d5-54cc23968ef2",
+                              "body/recipient/channelId": "19:_1NJtZj2ZMy00h9iDGPQD1N-_oaLv5Gq-0PBGSc0iVY1@thread.tacv2",
+                              "body/messageBody": "@outputs('Compose_Check_Teams')"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        }
+                      },
+                      "runAfter": {
+                        "Run_script_Log_Success": [
+                          "Succeeded"
+                        ]
+                      },
+                      "expression": {
+                        "equals": [
+                          "@   body('Run_script_into_Fines_Data')?['result']?['status']",
+                          "Check"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "6ddf2733-02e2-4bdd-b0d6-06562b0a8983"
+                      },
+                      "type": "If"
                     }
                   },
                   "runAfter": {
@@ -685,7 +747,7 @@
                   "dataset": "https://anheuserbuschinbev.sharepoint.com/sites/FleetEurope",
                   "parameters/sourceFileId": "@triggerOutputs()?['body/{Identifier}']",
                   "parameters/destinationDataset": "https://anheuserbuschinbev.sharepoint.com/sites/FleetEurope",
-                  "parameters/destinationFolderPath": "/Shared Documents/FLEET GERMANY/Fines/Fines_Payroll-Input/0. Testing AI/Failed",
+                  "parameters/destinationFolderPath": "/Shared Documents/FLEET GERMANY/Fines/Fines_Payroll-Input/Normal fines/Failed",
                   "parameters/nameConflictBehavior": 1
                 },
                 "authentication": "@parameters('$authentication')"
@@ -745,6 +807,80 @@
               "inputs": {
                 "from": "@result('Scope_Try')",
                 "where": "@equals(item()?['status'], 'Failed')"
+              }
+            },
+            "Compose_IsNoPlate": {
+              "runAfter": {
+                "Run_script_Log_Failed": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "9f5cf64c-56c7-43c7-b815-c222cf0c7cc6"
+              },
+              "type": "Compose",
+              "inputs": "@and(not(equals(coalesce(string(body('Parse_FineData')), ''), '')), empty(coalesce(body('Parse_FineData')?['PlateNumber'], '')))"
+            },
+            "Compose_Failed_Teams": {
+              "runAfter": {
+                "Compose_ErrorBlock": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "b7381ff5-7a7a-49b4-960d-084355d4b9b2"
+              },
+              "type": "Compose",
+              "inputs": "<div style=\"font-family:Segoe UI,Arial,sans-serif;max-width:640px;margin:0 auto;border:1px solid #d0d0d0;\">\n  <div style=\"background:#153643;color:#ffffff;padding:16px 24px;font-size:18px;font-weight:600;\">\n    @{if(outputs('Compose_IsNoPlate'), 'Fleet Germany - Normal Fine not processed (no plate)', 'Fleet Germany - Normal Fine intake error')}\n  </div>\n  <div style=\"height:4px;background:#e5b611;\"></div>\n  <div style=\"padding:20px 24px;color:#222222;font-size:14px;line-height:1.5;\">\n    <p>@{if(outputs('Compose_IsNoPlate'), 'The number plate could not be recognized, so no row was written. The file was moved to the Failed folder - please check the document.', 'The intake flow failed with a technical error. The file was moved to the Failed folder.')}</p>\n    @{outputs('Compose_ErrorBlock')}\n    <p style=\"margin:20px 0 8px;color:#666;\">\n      File (<strong>Normal</strong>): <strong>@{triggerOutputs()?['body/{FilenameWithExtension}']}</strong>\n    </p>\n  </div>\n  <div style=\"background:#f2f2f2;color:#888;padding:12px 24px;font-size:12px;\">\n    Automated message from GE Fine Intake.\n  </div>\n</div>"
+            },
+            "Compose_ErrorBlock": {
+              "runAfter": {
+                "Compose_ErrorMsg": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "7bd3c1d8-4b66-4e95-bfc9-d6d1a6c93ba9"
+              },
+              "type": "Compose",
+              "inputs": "@if(outputs('Compose_IsNoPlate'), '', concat('<p style=\"background:#fbf3d0;border-left:3px solid #e5b611;padding:10px 12px;margin:16px 0;\"><strong>Error:</strong> ', outputs('Compose_ErrorMsg'), '</p>'))"
+            },
+            "Compose_ErrorMsg": {
+              "runAfter": {
+                "Compose_IsNoPlate": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "f8407c5d-bd8c-46bf-82cb-612f112d5916"
+              },
+              "type": "Compose",
+              "inputs": "@replace(replace(coalesce(first(body('Filter_FailedActions'))?['error']?['message'],'Flow failed'),'\"',''),decodeUriComponent('%0A'),' ')"
+            },
+            "Post_Teams_Failed": {
+              "runAfter": {
+                "Compose_Failed_Teams": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "3af8b239-c742-462f-ae8b-69f2ba6c0add"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_teams",
+                  "operationId": "PostMessageToConversation",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                },
+                "parameters": {
+                  "poster": "User",
+                  "location": "Channel",
+                  "body/recipient/groupId": "482dae98-318c-42d9-a7d5-54cc23968ef2",
+                  "body/recipient/channelId": "19:_1NJtZj2ZMy00h9iDGPQD1N-_oaLv5Gq-0PBGSc0iVY1@thread.tacv2",
+                  "body/messageBody": "@outputs('Compose_Failed_Teams')"
+                },
+                "authentication": "@parameters('$authentication')"
               }
             }
           },
