@@ -1,0 +1,138 @@
+You are given the OCR text of a single German "cost notification" letter — an
+overdue-payment reminder (Zahlungserinnerung/Mahnung), a debt-collection
+(Inkasso) demand, or an administrative cost / towing notice sent to a vehicle
+holder. Extract the fields below and return them as ONE strict JSON object.
+Output JSON only — no explanation, no markdown, no code fences.
+
+Return exactly these twelve keys, always all of them, using null when a value is
+not present:
+{"VendorName","PlateNumber","Aktenzeichen","OffenceReason","OffenceDate","Location","LetterDate","Amount","AuthorityEmail","StampDate","DeadlineDays","DueDateExplicit"}
+
+Field rules:
+
+VendorName — the organization to which payment is owed: the creditor or the
+authority that issued the demand. If a law firm, lawyer (Rechtsanwalt/
+Rechtsanwältin) or other agent writes on behalf of a creditor, return the
+CREDITOR (e.g. the Inkasso company or the authority named for payment), NOT the
+law firm. Examples: "ASFINAG", "coeo Inkasso GmbH", "Stadt Dortmund".
+
+PlateNumber — the vehicle licence plate (Kennzeichen / Amtl. Kennzeichen, or
+stated inline such as "mit HB AO 632"). Return it as printed. Remove a trailing
+country marker like "(DE)". null if none.
+
+Aktenzeichen — the SINGLE reference number this letter tells the recipient to
+quote when paying or replying.
+- OVERRIDE RULE (highest priority): if the letter explicitly instructs which
+  number to state WHEN PAYING — e.g. "Bei Zahlungen bitte unbedingt das
+  Kassenzeichen <X> angeben", "unter Angabe des Kassenzeichens", "Verwendungs-
+  zweck: <X>", "bei Zahlung bitte angeben" — return THAT number, regardless of
+  the preference list below. The number the recipient must quote to pay is the
+  one we want.
+- Otherwise choose the FIRST that is present, in this order of preference:
+  1) Aktenzeichen
+  2) Vorgangsnummer
+  3) Kassenzeichen
+  4) Rechnungsnummer / Verwendungszweck
+  5) Kontrollfallnummer
+  6) Maßnahme-Nr. / Maßnahmenummer
+Return exactly one, as printed (keep its dots, hyphens, slashes and internal
+spaces). Do not merge several numbers. null if none is present.
+
+OffenceReason — a SHORT description of WHAT the original offence / violation was
+(the alleged act itself), copied as printed. This is the nature of the violation
+— not its date, place, amount, reference, or legal paragraph. A reminder may not
+restate it; that is fine.
+- PREFER a labelled field, in this order of preference: "Tatvorwurf",
+  "Tatbestand", "Verwaltungsübertretung", "Verstoß", "Parkvergehen", "Grund".
+- If there is NO such label, use a short phrase that names the violation, e.g.
+  after "Parkverstoß am ...", "Parkvergehen:", or "wegen ...".
+- EXCLUDE from the value: legal paragraph citations ("§ 20 Abs. 1 BStMG",
+  "§ 24 StVG", "BKat"), the date, time, plate, reference, location or amount, and
+  any payment/reminder boilerplate ("Zahlungserinnerung", "Gesamtforderung").
+- Keep it to ONE short line (trim to about 200 characters).
+- null if the letter does not describe the underlying offence.
+
+OffenceDate — the date the violation/offence occurred. Labels vary:
+"Datum / Uhrzeit", "Parkverstoß am", "Tatdatum und -zeit", "Tattag",
+"am ... um ...", "Mitteilung vom <date>" (fair-parking / Park & Control notices
+that print only a time on the offence line and give the date as "Mitteilung vom";
+that is the original on-site notice date, NOT this letter's "Datum:"). Take the
+date part only, ISO format YYYY-MM-DD. null if none.
+
+Location — the place where the violation/offence happened (where the vehicle was
+parked or caught). Return the text as printed (street, and city if given).
+- Labels: "Tatort", "Tatörtlichkeit", "Verstoßort", "Ort des Verstoßes",
+  "Parkort", "Ort:", or a street+place stated next to the offence date/time.
+- PREFER an explicit labelled field ("Tatort:", "Ort des Verstoßes:") over an
+  address mentioned in the running body text. If a labelled location field and a
+  body-text address disagree (e.g. two different house numbers), take the value
+  from the labelled field.
+- Keep it short: the location only. Do NOT include the date, time, plate,
+  reference, or the amount.
+- This is NOT the sender's/creditor's address, NOT our company's address, and
+  NOT the recipient's address. null if no violation location is stated.
+
+LetterDate — the date THIS letter was written (e.g. "<Ort>, am 13.10.2026",
+"Datum: 12.10.2026", or a dated line in the letterhead). ISO YYYY-MM-DD.
+Do NOT use: the Poststelle / postmark stamp (use StampDate), any payment
+deadline ("zahlbar bis", "bis zum ...", "Frist", "spätestens bis" — use
+DueDateExplicit/DeadlineDays), or the date of the original invoice/notice being
+reminded about ("Rechnungsdatum", "Informationsschreiben vom ..."). null if none.
+
+Amount — the TOTAL amount currently due on THIS demand: the final "to pay now"
+figure, including any reminder fees, interest or costs already added. Labels:
+"Zu zahlender Betrag", "Gesamtforderung", "Gesamtbetrag", "Brutto",
+"Gesamtkosten der Maßnahme", "offener Betrag". If a breakdown is shown, take the
+final total AFTER any "abzüglich geleisteter Zahlung". Return a JSON number with
+a dot as the decimal separator, no thousands separator, no currency symbol
+(e.g. "200,00 EUR" -> 200.0 ; "1.234,56 EUR" -> 1234.56). null if no amount stated.
+
+AuthorityEmail — an email address to contact for paying or replying to this
+demand. If several appear, prefer the one belonging to the creditor/authority
+named in VendorName over a law-firm/agent address. null if none.
+
+StampDate — the date the payment PERIOD runs FROM (the base a later step adds the
+deadline duration to). Format YYYY-MM-DD. Choose in this priority:
+1) EXPLICIT ANCHOR: if the deadline is a duration counted from a date the letter
+   names — "binnen X Wochen ab dem Rechnungsdatum ... (<date>)", "innerhalb von X
+   Tagen/Wochen ab dem <date>", "ab dem <date>" — return THAT <date>. E.g.
+   "binnen vier Wochen ab dem Rechnungsdatum des Informationsschreibens
+   (24.09.2026)" -> "2026-09-24". This WINS even when a postal stamp is also
+   present, because the letter says the period counts from this date, not from
+   receipt. (A plain "innerhalb einer Woche ab Zugang" names no date — that is
+   NOT an anchor; fall through to the stamp.)
+2) Otherwise the INCOMING postal/registration stamp (period runs "ab Zugang" /
+   receipt): a boxed stamp, usually with the word "POSTSTELLE" or
+   "Eingangsstempel" plus a city and a date, e.g.
+   "POSTSTELLE  22. Okt. 2026  BREMEN" -> "2026-10-22".
+- German short month names map so: Jan=01, Feb=02, Mär/Mrz=03, Apr=04, Mai=05,
+  Jun=06, Jul=07, Aug=08, Sep=09, Okt=10, Nov=11, Dez=12.
+- This is NEVER the LetterDate or OffenceDate. null if neither an anchor nor a
+  stamp is present.
+
+DeadlineDays — if the letter states the payment period as a DURATION (a number
+of days or weeks from receipt) rather than a fixed calendar date, return it as an
+INTEGER number of days.
+- "innerhalb einer Woche" / "innerhalb von 7 Tagen" -> 7
+- "innerhalb von 14 Tagen" / "innerhalb von zwei Wochen" -> 14
+- "innerhalb von X Tagen" -> X ; "innerhalb von X Wochen" -> X*7
+- null if the period is not stated as a duration. Do NOT convert a fixed date
+  into a day count — a fixed date goes to DueDateExplicit.
+
+DueDateExplicit — if the letter gives an EXPLICIT payment deadline DATE, return
+it as YYYY-MM-DD.
+- Labels: "zahlbar bis", "bis zum <date>", "spätestens bis <date>",
+  "Zahlungsziel <date>", "Frist: <date>".
+- This is the date by which payment must arrive — NOT the offence date, letter
+  date or stamp. null if the deadline is given only as a duration (see
+  DeadlineDays) or not given at all.
+
+Return only the JSON object. Example of the shape (values illustrative):
+{"VendorName":"ASFINAG","PlateNumber":"HB-AG454","Aktenzeichen":"P01016894592","OffenceReason":"Nichtentrichtung der Maut in Österreich","OffenceDate":"2026-09-02","Location":"A1 Richtung Köln","LetterDate":"2026-10-13","Amount":200.0,"AuthorityEmail":null,"StampDate":null,"DeadlineDays":7,"DueDateExplicit":null}
+
+
+
+
+
+
+OCR text:  OcrText 
