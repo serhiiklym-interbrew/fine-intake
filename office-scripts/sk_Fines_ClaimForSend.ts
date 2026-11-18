@@ -324,15 +324,23 @@ function main(
     rowRange.getCell(0, iToken).setValue(token);
 
     // ---- recipients the flow needs to resolve ---------------------------------
-    // Authority Fahrerbenennung goes out once: for Normal on its first stage (N1),
-    // and for a Cost Notification (its own one-shot stage). Fair never mails an
-    // authority, and Normal's later stages (N2/N3) don't repeat the authority mail.
+    // Authority Fahrerbenennung goes out once per row: for Normal on the row's
+    // FIRST notification at ANY stage (a late fine may start at N2/N3), and for a
+    // Cost Notification. First-notify = empty LastNotifyStage; two-phase means a
+    // SendFailed retry still re-includes the authority (nothing went out). Fair
+    // never mails an authority; once LastNotifyStage is stamped, no repeat.
     const authorityEmail = str(values[r][iAuthEmail]).trim();
     const ftLower = fineType.toLowerCase();
+    const isFirstNotify = lastStage === "";   // row never notified yet (driver or authority)
     const includeAuthority =
         authorityEmail !== "" &&
-        ((ftLower === "normal" && stage === "N1") || ftLower === "cost notification");
-    const escalate = stage === "N3" || stage === "CN";
+        ((ftLower === "normal" && isFirstNotify) || ftLower === "cost notification");
+
+    // Escalation flag the flow acts on: stage N3 (due today/overdue) or CN ->
+    // flow also CCs line manager + security manager. This declaration was MISSING
+    // in the deployed version; in strict mode (Office Scripts) referencing the
+    // undeclared `escalate` at the claim return threw "escalate is not defined".
+    const escalate = (stage === "N3" || stage === "CN");
 
     const mail: ClaimMail = {
         employeeName: str(values[r][iEmpName]),

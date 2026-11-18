@@ -14,44 +14,79 @@
  *   status     : "Passed" or "Check" ("Failed" rows are never written).
  *   fileLink   : SharePoint "Link to item" of the archived PDF (may be empty).
  *   folderPath : SharePoint link to the submission folder (may be empty).
- *   dataJson   : the GPT JSON string. 8 recognized fields + 3 DueDate inputs:
- *                VendorName, PlateNumber, Aktenzeichen, OffenceDate, Location,
- *                LetterDate, Amount, AuthorityEmail,
+ *   dataJson   : the GPT JSON string. 9 recognized fields + 3 DueDate inputs:
+ *                VendorName, PlateNumber, Aktenzeichen, OffenceReason,
+ *                OffenceDate, Location, LetterDate, Amount, AuthorityEmail,
  *                StampDate, DeadlineDays, DueDateExplicit.
  *                (The JSON key stays "Aktenzeichen" — the document's language;
  *                 it maps to the ReferenceNumber column.)
  *
- * DueDate (col 7) is computed HERE, not by the LLM (date arithmetic in the LLM
+ * DueDate (col 8) is computed HERE, not by the LLM (date arithmetic in the LLM
  * is unreliable). Rule:
  *     base    = StampDate ?? LetterDate        (incoming-stamp date preferred,
  *                                               it is closest to legal "Zugang")
  *     DueDate = DueDateExplicit ?? (base + DeadlineDays)
  * If nothing resolves, DueDate is left empty.
  *
- * Returns (read by the flow to decide the log entry):
- *   { inserted: true,  reason: "" }          -> a new row was appended.
- *   { inserted: false, reason: "duplicate" } -> NormalizedReferenceNumber already
- *                                               present; no row written.
+ * OCRPercent (col 11) is computed HERE — the share of the recognized columns
+ * EXPECTED for this fine type that came back non-empty (variant C: fields that
+ * are absent by design are left out of the denominator so each type can honestly
+ * reach 100%). It is a completeness signal, NOT an OCR confidence: it says how
+ * many expected columns were filled, not whether any value is correct. Expected
+ * columns (denominator) per type:
+ *     Normal (9): PlateNumber, VendorName, ReferenceNumber, OffenceReason,
+ *                 OffenceDate, Location, LetterDate, Amount, AuthorityEmail
+ *     Fair   (8): the above minus AuthorityEmail
+ *                 (private operators usually have no contact email)
+ *     CN     (6): PlateNumber, VendorName, ReferenceNumber, Location,
+ *                 LetterDate, Amount
+ *                 (reminders may restate neither the offence reason nor its
+ *                  date, and the issuer email is inconsistent — all three out)
+ *
+ * Check highlighting: when a row is written with Status = "Check", the key cells
+ * that came back empty are filled yellow (#FFEB9C) so the specialist sees at a
+ * glance what to complete from the file. The flagged set is per fine type, so a
+ * field that is legitimately empty for a type is never falsely flagged:
+ *     Normal: ReferenceNumber, OffenceDate, DueDate, AuthorityEmail,
+ *             VendorName, LetterDate, Location
+ *     Fair  : the above minus AuthorityEmail (private operators have no email)
+ *     CN    : ReferenceNumber, VendorName, LetterDate, Location
+ *             (offence date not restated; stage is fixed CN, not DueDate-driven;
+ *              issuer email inconsistent)
+ * Amount and OffenceReason are informational and not flagged. PlateNumber is
+ * flagged only when it is present but malformed (the implausible-plate guard
+ * that downgraded the row to Check) — an empty plate is Failed, never a row.
+ *
+ * Returns (read by the flow):
+ *   { inserted: true,  reason: "", status }  -> a new row was appended. `status`
+ *                                               is the FINAL row status (Passed or
+ *                                               Check). The flow gates its Check
+ *                                               Teams post on THIS, not on its own
+ *                                               varStatus, so a script-side Check
+ *                                               downgrade (implausible plate, or an
+ *                                               unresolved DueDate on Normal/Fair)
+ *                                               is posted too.
+ *   { inserted: false, reason: "duplicate", status: "" } -> NormalizedReferenceNumber
+ *                                               already present; no row written.
  *   The file is archived by the flow regardless, so a duplicate is logged as
  *   Skipped (RowsInserted = 0), not Failed.
  *
- * Column order written (must match tblFines exactly — 33 columns).
- * NB: this grid follows the EXECUTED row[] array below (MailStatus at 18), which
- * is the authoritative physical order — not an earlier header/handoff that had
- * MailStatus at 26. The ConfirmedBy column was removed 2026-10-29 (it only ever
- * duplicated EmployeeEmail, since the anonymous confirm link cannot verify who
- * actually clicked), shifting every column after PaymentDate down by one:
- *   0  PlateNumber        9  Status            18 MailStatus        27 NormalizedReferenceNumber
- *   1  FineType          10  OCRPercent        19 LastNotifyStage   28 RowId
- *   2  VendorName        11  AuthorityEmail    20 LastNotifyDate    29 ConfirmToken
- *   3  ReferenceNumber   12  Personalnummer    21 DateSent          30 ProcessedAt
- *   4  OffenceDate       13  EmployeeName      22 ConfirmedDate     31 File
- *   5  Location          14  EmployeeEmail     23 PaymentDate       32 FolderPath
- *   6  LetterDate        15  EmployeeAddress   24 MatchNote
- *   7  DueDate           16  DriverSource      25 ReviewNote
- *   8  Amount            17  VehicleFrom       26 FileName
+ * Column order written (must match tblFines exactly — 34 columns).
+ * NB: this grid follows the EXECUTED row[] array below, which is the authoritative
+ * physical order — not an earlier header/handoff. OffenceReason was inserted at
+ * index 4 (before OffenceDate) 2026-11-05, shifting every column from OffenceDate
+ * onward down by one. (ConfirmedBy was removed 2026-10-29.)
+ *   0  PlateNumber        9  Amount           18 VehicleFrom       27 FileName
+ *   1  FineType          10  Status           19 MailStatus        28 NormalizedReferenceNumber
+ *   2  VendorName        11  OCRPercent       20 LastNotifyStage   29 RowId
+ *   3  ReferenceNumber   12  AuthorityEmail   21 LastNotifyDate    30 ConfirmToken
+ *   4  OffenceReason     13  Personalnummer   22 DateSent          31 ProcessedAt
+ *   5  OffenceDate       14  EmployeeName     23 ConfirmedDate     32 File
+ *   6  Location          15  EmployeeEmail    24 PaymentDate       33 FolderPath
+ *   7  LetterDate        16  EmployeeAddress  25 MatchNote
+ *   8  DueDate           17  DriverSource     26 ReviewNote
  *
- *   Intake fills the recognized fields (cols 0-9 + AuthorityEmail),
+ *   Intake fills the recognized fields (cols 0-11 + AuthorityEmail),
  *   NormalizedReferenceNumber, RowId, ProcessedAt, File, FolderPath, and seeds
  *   MailStatus = "Pending" for every row (Passed and Check alike). All match /
  *   notify / payment columns are left empty for the downstream flows:
@@ -64,15 +99,17 @@
  *   ("R" + Date.now() + "-" + random suffix): FileName is not unique, ProcessedAt
  *   resolves only to the second, and Check rows carry no reference.
  *
- *   Location (col 5) is the violation location, pulled from dataJson (the 8th
- *   recognized field) — written as text, needed by the Normal/CN letters.
- *   OCRPercent (col 10) is reserved for a future OCR-recognition score; intake
- *   leaves it empty for now (no format set).
+ *   OffenceReason (col 4) is the short description of the alleged violation,
+ *   pulled from dataJson — written as text, for the specialist to read in Excel;
+ *   it is not a match / dedup key and affects nothing downstream.
+ *   Location (col 6) is the violation location, pulled from dataJson — written as
+ *   text, needed by the Normal/CN letters.
  */
 
 interface WriteResult {
     inserted: boolean;
     reason: string;
+    status: string; // final row status (Passed/Check) — the flow reads this
 }
 
 function main(
@@ -94,6 +131,7 @@ function main(
         VendorName?: string | null;
         PlateNumber?: string | null;
         Aktenzeichen?: string | null;
+        OffenceReason?: string | null;
         OffenceDate?: string | null;
         Location?: string | null;
         LetterDate?: string | null;
@@ -114,6 +152,10 @@ function main(
     // ---- helpers --------------------------------------------------------------
     const txt = (v: string | null | undefined): string =>
         (v === null || v === undefined) ? "" : ("" + v);
+
+    // Non-empty after trimming (used by the OCRPercent completeness count).
+    const hasStr = (v: string): boolean =>
+        v !== null && v !== undefined && ("" + v).trim() !== "";
 
     // Same rule as the stored NormalizedReferenceNumber: strip whitespace + upper.
     const normalizeRef = (v: string): string =>
@@ -166,7 +208,7 @@ function main(
     // A fully-glued input falls back to a 2-letter second group; an unexpected
     // shape is returned upper-cased + space-collapsed, never mangled.
     function canonicalizePlate(value: string): string {
-        const raw = (value || "").trim().replace(/[-\s]+/g, " ").toUpperCase();
+        const raw = (value || "").trim().replace(/[-_\s]+/g, " ").toUpperCase();
         const parts = raw.split(" ");
         if (parts.length >= 2) {
             const region = parts[0];
@@ -199,6 +241,7 @@ function main(
     // ---- derive values --------------------------------------------------------
     const refRaw = txt(d.Aktenzeichen);
     const refNorm = normalizeRef(refRaw); // dedup key
+    const reasonTxt = txt(d.OffenceReason);
 
     // ---- dedup check ----------------------------------------------------------
     // Only when we actually have a reference. An empty Aktenzeichen means a
@@ -212,7 +255,9 @@ function main(
             const vals = bodyRange.getValues();
             for (let i = 0; i < vals.length; i++) {
                 if (normalizeRef("" + vals[i][0]) === refNorm) {
-                    return { inserted: false, reason: "duplicate" };
+                    // status "" — no row written, the flow never reads it here
+                    // (Condition Inserted is false on a duplicate).
+                    return { inserted: false, reason: "duplicate", status: "" };
                 }
             }
         }
@@ -243,41 +288,98 @@ function main(
         effectiveStatus = "Check";
     }
 
-    // ---- build the row (exact tblFines column order, 33 columns) ---------------
+    // Normal/Fair: an unresolved DueDate silently defaults escalation to N1 ->
+    // hold the row for review instead of mailing it as a fresh N1. (CN stage is
+    // fixed, not DueDate-driven, so an empty DueDate is fine there.) dueSerial is
+    // "" when neither an explicit deadline nor base-date+DeadlineDays resolved.
+    {
+        const ftLower = txt(fineType).toLowerCase();
+        const isCNtype = ftLower.indexOf("cost") !== -1 || ftLower.indexOf("notification") !== -1;
+        if (effectiveStatus.toLowerCase() === "passed" && !isCNtype && dueSerial === "") {
+            effectiveStatus = "Check";
+        }
+    }
+
+    // ---- OCRPercent (variant C) -----------------------------------------------
+    // Presence of each recognized column (a valid parsed date counts, an
+    // unparseable one does not). The denominator is the subset EXPECTED for this
+    // fine type, so by-design-absent fields don't drag the score below 100%.
+    const present: { [k: string]: boolean } = {
+        plate: plate !== "",
+        vendor: hasStr(txt(d.VendorName)),
+        reference: refRaw.trim() !== "",
+        reason: hasStr(reasonTxt),
+        offenceDate: offenceSerial !== "",
+        location: hasStr(txt(d.Location)),
+        letterDate: letterSerial !== "",
+        amount: amountVal !== "",
+        authEmail: hasStr(txt(d.AuthorityEmail))
+    };
+
+    const ft = txt(fineType).toLowerCase();
+    let expected: boolean[];
+    if (ft.indexOf("cost") !== -1 || ft.indexOf("notification") !== -1) {
+        // Cost Notification (6): offence reason, offence date and issuer email
+        // are all excluded (see header note).
+        expected = [present.plate, present.vendor, present.reference,
+        present.location, present.letterDate, present.amount];
+    } else if (ft.indexOf("fair") !== -1) {
+        // Fair parking (8): AuthorityEmail excluded (private operators).
+        expected = [present.plate, present.vendor, present.reference,
+        present.reason, present.offenceDate, present.location,
+        present.letterDate, present.amount];
+    } else {
+        // Normal / authority fines (9): all recognized columns expected.
+        expected = [present.plate, present.vendor, present.reference,
+        present.reason, present.offenceDate, present.location,
+        present.letterDate, present.amount, present.authEmail];
+    }
+
+    let ocrPercent: number | string = "";
+    if (expected.length > 0) {
+        let got = 0;
+        for (let i = 0; i < expected.length; i++) {
+            if (expected[i]) got++;
+        }
+        ocrPercent = Math.round((got / expected.length) * 100);
+    }
+
+    // ---- build the row (exact tblFines column order, 34 columns) ---------------
     const row: (string | number)[] = [
         plate,                  // 0  PlateNumber (canonicalized "AREA-LL DDD")
         txt(fineType),          // 1  FineType
         txt(d.VendorName),      // 2  VendorName
         refRaw,                 // 3  ReferenceNumber
-        offenceSerial,          // 4  OffenceDate
-        txt(d.Location),        // 5  Location (violation location, from OCR)
-        letterSerial,           // 6  LetterDate
-        dueSerial,              // 7  DueDate (computed)
-        amountVal,              // 8  Amount
-        txt(effectiveStatus),   // 9  Status (Passed downgraded to Check on bad plate)
-        "",                     // 10 OCRPercent (reserved; empty for now)
-        txt(d.AuthorityEmail),  // 11 AuthorityEmail
-        "",                     // 12 Personalnummer   (match flow)
-        "",                     // 13 EmployeeName      (match flow)
-        "",                     // 14 EmployeeEmail     (match flow)
-        "",                     // 15 EmployeeAddress   (match flow)
-        "",                     // 16 DriverSource      (match flow: DUMP/Pool)
-        "",                     // 17 VehicleFrom       (match flow)
-        "Pending",              // 18 MailStatus (intake seeds Pending)
-        "",                     // 19 LastNotifyStage   (notify flow)
-        "",                     // 20 LastNotifyDate    (notify flow)
-        "",                     // 21 DateSent          (notify flow)
-        "",                     // 22 ConfirmedDate     (capture flow)
-        "",                     // 23 PaymentDate       (capture flow)
-        "",                     // 24 MatchNote         (match flow)
-        "",                     // 25 ReviewNote        (filled manually)
-        txt(fileName),          // 26 FileName
-        refNorm,                // 27 NormalizedReferenceNumber
-        rowId,                  // 28 RowId (unique key, text)
-        "",                     // 29 ConfirmToken (send flow stamps the nonce)
-        processedSerial,        // 30 ProcessedAt
-        "",                     // 31 File (hyperlink set below)
-        ""                      // 32 FolderPath (hyperlink set below)
+        reasonTxt,              // 4  OffenceReason (violation description, from OCR)
+        offenceSerial,          // 5  OffenceDate
+        txt(d.Location),        // 6  Location (violation location, from OCR)
+        letterSerial,           // 7  LetterDate
+        dueSerial,              // 8  DueDate (computed)
+        amountVal,              // 9  Amount
+        txt(effectiveStatus),   // 10 Status (Passed downgraded to Check on bad plate)
+        ocrPercent,             // 11 OCRPercent (computed completeness %, per type)
+        txt(d.AuthorityEmail),  // 12 AuthorityEmail
+        "",                     // 13 Personalnummer   (match flow)
+        "",                     // 14 EmployeeName      (match flow)
+        "",                     // 15 EmployeeEmail     (match flow)
+        "",                     // 16 EmployeeAddress   (match flow)
+        "",                     // 17 DriverSource      (match flow: DUMP/Pool)
+        "",                     // 18 VehicleFrom       (match flow)
+        "Pending",              // 19 MailStatus (intake seeds Pending)
+        "",                     // 20 LastNotifyStage   (notify flow)
+        "",                     // 21 LastNotifyDate    (notify flow)
+        "",                     // 22 DateSent          (notify flow)
+        "",                     // 23 ConfirmedDate     (capture flow)
+        "",                     // 24 PaymentDate       (capture flow)
+        "",                     // 25 MatchNote         (match flow)
+        "",                     // 26 ReviewNote        (filled manually)
+        txt(fileName),          // 27 FileName
+        refNorm,                // 28 NormalizedReferenceNumber
+        rowId,                  // 29 RowId (unique key, text)
+        "",                     // 30 ConfirmToken (send flow stamps the nonce)
+        processedSerial,        // 31 ProcessedAt
+        "",                     // 32 File (hyperlink set below)
+        ""                      // 33 FolderPath (hyperlink set below)
     ];
 
     table.addRow(-1, row);
@@ -292,35 +394,93 @@ function main(
     // holds a value, so it must be replaced.
     newRow.getColumn(3).setNumberFormat("@");                 // ReferenceNumber
     newRow.getColumn(3).setValue(refRaw);
-    newRow.getColumn(27).setNumberFormat("@");                // NormalizedReferenceNumber
-    newRow.getColumn(27).setValue(refNorm);
+    newRow.getColumn(28).setNumberFormat("@");                // NormalizedReferenceNumber
+    newRow.getColumn(28).setValue(refNorm);
 
     // Personalnummer / ConfirmToken are text identifiers the downstream flows
     // write and compare as exact strings — keep the cells Text even though intake
     // leaves them empty, so a later write isn't coerced to a number if the sheet
     // is ever recreated.
-    newRow.getColumn(12).setNumberFormat("@");                // Personalnummer
-    newRow.getColumn(12).setValue("");
-    newRow.getColumn(28).setNumberFormat("@");                // RowId
-    newRow.getColumn(28).setValue(rowId);
-    newRow.getColumn(29).setNumberFormat("@");                // ConfirmToken
-    newRow.getColumn(29).setValue("");
+    newRow.getColumn(13).setNumberFormat("@");                // Personalnummer
+    newRow.getColumn(13).setValue("");
+    newRow.getColumn(29).setNumberFormat("@");                // RowId
+    newRow.getColumn(29).setValue(rowId);
+    newRow.getColumn(30).setNumberFormat("@");                // ConfirmToken
+    newRow.getColumn(30).setValue("");
 
     // Date / number formats on the columns intake actually fills. The date cells
     // left empty here (LastNotifyDate, DateSent, ConfirmedDate, PaymentDate) stay
     // unformatted — each downstream flow sets its own format when it writes.
-    newRow.getColumn(4).setNumberFormat("dd.mm.yyyy");        // OffenceDate
-    newRow.getColumn(6).setNumberFormat("dd.mm.yyyy");        // LetterDate
-    newRow.getColumn(7).setNumberFormat("dd.mm.yyyy");        // DueDate
-    newRow.getColumn(8).setNumberFormat("0.00");              // Amount
-    newRow.getColumn(30).setNumberFormat("dd.mm.yyyy hh:mm"); // ProcessedAt
+    newRow.getColumn(5).setNumberFormat("dd.mm.yyyy");        // OffenceDate
+    newRow.getColumn(7).setNumberFormat("dd.mm.yyyy");        // LetterDate
+    newRow.getColumn(8).setNumberFormat("dd.mm.yyyy");        // DueDate
+    newRow.getColumn(9).setNumberFormat("0.00");              // Amount
+    newRow.getColumn(31).setNumberFormat("dd.mm.yyyy hh:mm"); // ProcessedAt
 
     if (fileLink) {
-        newRow.getColumn(31).setHyperlink({ address: fileLink, textToDisplay: "Open" });
+        newRow.getColumn(32).setHyperlink({ address: fileLink, textToDisplay: "Open" });
     }
     if (folderPath) {
-        newRow.getColumn(32).setHyperlink({ address: folderPath, textToDisplay: "Open folder" });
+        newRow.getColumn(33).setHyperlink({ address: folderPath, textToDisplay: "Open folder" });
     }
 
-    return { inserted: true, reason: "" };
+    // ---- clear inherited fill before (re)highlighting --------------------------
+    // Excel propagates the previous row's formatting to a newly added table row,
+    // so a prior Check row's yellow would otherwise bleed down — onto filled cells
+    // that must stay clean, and onto rows that are not Check at all. Clear the
+    // whole new row's direct fill first (table-style banding is a separate layer
+    // and is unaffected); the block below re-applies yellow only where this row
+    // actually needs it.
+    newRow.getFormat().getFill().clear();
+
+    // ---- highlight empty key cells on Check rows ------------------------------
+    // On a Check row, paint the key cells that came back empty so the specialist
+    // sees at a glance what to complete from the file. The flagged set is per
+    // fine type, so a field that is legitimately empty for a type is never
+    // falsely flagged (AuthorityEmail on Fair; OffenceDate/DueDate on CN).
+    // PlateNumber is never flagged (empty plate -> Failed, never a written row);
+    // Amount and OffenceReason are informational and excluded by choice.
+    // Reuses the presence flags already computed for OCRPercent; DueDate is
+    // computed separately, so its serial is checked directly.
+    if (effectiveStatus.toLowerCase() === "check") {
+        const CHECK_FILL = "#FFFF00"; // bright yellow — must stand out in the sheet
+
+        // Common to every type: VendorName, ReferenceNumber, Location, LetterDate.
+        const keyCells: { col: number; filled: boolean }[] = [
+            { col: 2, filled: present.vendor },     // VendorName
+            { col: 3, filled: present.reference },  // ReferenceNumber
+            { col: 6, filled: present.location },   // Location
+            { col: 7, filled: present.letterDate }  // LetterDate
+        ];
+
+        const isCN = ft.indexOf("cost") !== -1 || ft.indexOf("notification") !== -1;
+        const isFair = ft.indexOf("fair") !== -1;
+
+        if (!isCN) {
+            // Normal + Fair also expect OffenceDate and the computed DueDate.
+            keyCells.push({ col: 5, filled: present.offenceDate }); // OffenceDate
+            keyCells.push({ col: 8, filled: dueSerial !== "" });    // DueDate
+            if (!isFair) {
+                // Normal only: AuthorityEmail (Fair private operators have none).
+                keyCells.push({ col: 12, filled: present.authEmail }); // AuthorityEmail
+            }
+        }
+
+        for (let i = 0; i < keyCells.length; i++) {
+            if (!keyCells[i].filled) {
+                newRow.getColumn(keyCells[i].col).getFormat().getFill().setColor(CHECK_FILL);
+            }
+        }
+
+        // Plate-caused Check: when the plate is present but malformed (the guard
+        // above downgraded Passed -> Check, or the flow already sent Check with a
+        // bad plate), none of the key cells above may be empty, leaving the row
+        // Check with nothing painted. Flag the plate itself so the cause is
+        // always visible. (An empty plate never reaches here — it is Failed.)
+        if (plate !== "" && !isPlausiblePlate(plate)) {
+            newRow.getColumn(0).getFormat().getFill().setColor(CHECK_FILL); // PlateNumber
+        }
+    }
+
+    return { inserted: true, reason: "", status: effectiveStatus };
 }
